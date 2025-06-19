@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.10/htmx.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffff;
+            color: #09090b;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 32rem;
+            margin: 0 auto;
+            padding-top: 2rem;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: #09090b;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #71717a;
+            font-size: 0.875rem;
+        }
+
+        .input-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            background-color: #ffffff;
+            transition: border-color 0.2s;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: #09090b;
+            box-shadow: 0 0 0 2px rgba(9, 9, 11, 0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.375rem;
+            background-color: #09090b;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: #18181b;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: #71717a;
+            border: 1px solid transparent;
+            padding: 0.25rem;
+            min-width: auto;
+        }
+
+        .btn-ghost:hover {
+            background-color: #f4f4f5;
+            color: #09090b;
+        }
+
+        .todo-list {
+            gap: 0.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #e4e4e7;
+            border-radius: 0.375rem;
+            background-color: #ffffff;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .todo-item:hover {
+            border-color: #d4d4d8;
+        }
+
+        .todo-item.completed {
+            background-color: #fafafa;
+            border-color: #e4e4e7;
+        }
+
+        .todo-checkbox {
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid #d4d4d8;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .todo-checkbox:checked {
+            background-color: #09090b;
+            border-color: #09090b;
+        }
+
+        .todo-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 1px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .todo-text {
+            flex: 1;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: #71717a;
+        }
+
+        .delete-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .todo-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #71717a;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .stats {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e4e4e7;
+            font-size: 0.75rem;
+            color: #71717a;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Tasks</h1>
+            <p class="subtitle">Manage your daily tasks</p>
+        </div>
+
+        <div class="input-container">
+            <form hx-post="/add-todo" hx-target="#todo-list" hx-swap="beforeend" class="input-group">
+                <input 
+                    type="text" 
+                    name="todo" 
+                    placeholder="Add a new task..." 
+                    class="todo-input" 
+                    required
+                    hx-on:htmx:after-request="this.value = ''"
+                >
+                <button type="submit" class="btn">Add</button>
+            </form>
+        </div>
+
+        <div id="todo-list" class="todo-list">
+            <!-- Todos will be added here -->
+        </div>
+
+        <div id="empty-state" class="empty-state">
+            <div class="empty-icon">📝</div>
+            <p>No tasks yet. Add one above to get started.</p>
+        </div>
+
+        <div class="stats">
+            <span id="todo-count">0 tasks</span>
+        </div>
+    </div>
+
+    <script>
+        let todos = [];
+        let idCounter = 1;
+
+        // Mock server responses
+        htmx.defineExtension('mock-server', {
+            onEvent: function(name, evt) {
+                if (name === 'htmx:beforeRequest') {
+                    evt.preventDefault();
+                    
+                    const xhr = evt.detail.xhr;
+                    const url = xhr.url || evt.detail.pathInfo.requestPath;
+                    const method = xhr.method || 'GET';
+                    const formData = evt.detail.requestConfig.parameters;
+
+                    setTimeout(() => {
+                        let response = '';
+                        
+                        if (url === '/add-todo' && method === 'POST') {
+                            const todoText = formData.todo;
+                            if (todoText) {
+                                const newTodo = {
+                                    id: idCounter++,
+                                    text: todoText,
+                                    completed: false
+                                };
+                                todos.push(newTodo);
+                                response = renderTodo(newTodo);
+                                updateStats();
+                                hideEmptyState();
+                            }
+                        } else if (url.startsWith('/toggle-todo/')) {
+                            const id = parseInt(url.split('/')[2]);
+                            const todo = todos.find(t => t.id === id);
+                            if (todo) {
+                                todo.completed = !todo.completed;
+                                response = renderTodo(todo);
+                                updateStats();
+                            }
+                        } else if (url.startsWith('/delete-todo/')) {
+                            const id = parseInt(url.split('/')[2]);
+                            todos = todos.filter(t => t.id !== id);
+                            response = '';
+                            updateStats();
+                            if (todos.length === 0) {
+                                showEmptyState();
+                            }
+                        }
+
+                        // Simulate server response
+                        htmx.trigger(evt.detail.elt, 'htmx:beforeSwap', {
+                            xhr: { responseText: response, status: 200 },
+                            target: evt.detail.target,
+                            swapSpec: evt.detail.requestConfig.swap || 'innerHTML'
+                        });
+                    }, 100);
+                }
+            }
+        });
+
+        function renderTodo(todo) {
+            return `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}" id="todo-${todo.id}">
+                    <input 
+                        type="checkbox" 
+                        class="todo-checkbox" 
+                        ${todo.completed ? 'checked' : ''}
+                        hx-post="/toggle-todo/${todo.id}"
+                        hx-target="#todo-${todo.id}"
+                        hx-swap="outerHTML"
+                        hx-ext="mock-server"
+                    >
+                    <span class="todo-text ${todo.completed ? 'completed' : ''}">${escapeHtml(todo.text)}</span>
+                    <button 
+                        class="btn btn-ghost delete-btn"
+                        hx-delete="/delete-todo/${todo.id}"
+                        hx-target="#todo-${todo.id}"
+                        hx-swap="outerHTML"
+                        hx-ext="mock-server"
+                        hx-confirm="Delete this task?"
+                    >×</button>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateStats() {
+            const count = todos.length;
+            const completed = todos.filter(t => t.completed).length;
+            document.getElementById('todo-count').textContent = 
+                `${count} task${count !== 1 ? 's' : ''} • ${completed} completed`;
+        }
+
+        function hideEmptyState() {
+            document.getElementById('empty-state').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('empty-state').style.display = 'block';
+        }
+
+        // Initialize HTMX extension
+        document.body.setAttribute('hx-ext', 'mock-server');
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load django_tables2 %}
+
+{% block title %}{{ url.name }} - Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ url.name }}</h2>
+        <p class="text-muted">{{ url.url }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'monitor:check_now' url.id %}" class="btn btn-info">Check Now</a>
+        <a href="{% url 'monitor:edit_url' url.id %}" class="btn btn-warning">Edit</a>
+        <a href="{% url 'monitor:add_alert_for_url' url.id %}" class="btn btn-primary">Add Alert</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Status Overview -->
+    <div class="col-md-6 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Current Status</h5>
+            </div>
+            <div class="card-body">
+                {% with url.statuses.first as latest %}
+                {% if latest %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fs-1">
+                                {% if latest.is_up %}
+                                    <span class="text-success">🟢 UP</span>
+                                {% else %}
+                                    <span class="text-danger">🔴 DOWN</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="text-end">
+                            <div>Last checked: {{ latest.timestamp|naturaltime }}</div>
+                            <div>Response: {{ latest.response_time|floatformat:2 }} ms</div>
+                            <div>Status: {{ latest.status_code|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if not latest.is_up and latest.error_message %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> {{ latest.error_message }}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <h5>No status data available</h5>
+                        <p>This URL hasn't been checked yet</p>
+                    </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Uptime Stats -->
+    <div class="col-md-6 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Uptime Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-black border-primary">
+                            <div class="card-body">
+                                <h6>24 Hours</h6>
+                                <h3>{{ uptime_stats.24h }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-black border-primary">
+                            <div class="card-body">
+                                <h6>7 Days</h6>
+                                <h3>{{ uptime_stats.7d }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-black border-primary">
+                            <div class="card-body">
+                                <h6>30 Days</h6>
+                                <h3>{{ uptime_stats.30d }}%</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h6>Response Times</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between">
+                                <span>24h Avg:</span>
+                                <span>{{ response_stats.24h|floatformat:2 }} ms</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                    style="width: 50%">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between">
+                                <span>7d Avg:</span>
+                                <span>{{ response_stats.7d|floatformat:2 }} ms</span>
+                            </div>
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                    style="width: 50%">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Uptime Chart -->
+    <div class="col-md-12 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Uptime History (Last 7 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="historyChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Status History -->
+    <div class="col-md-12 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Status History</h5>
+            </div>
+            <div class="card-body">
+                {% render_table status_table %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch("{% url 'monitor:get_uptime_chart_data' url.id %}")
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Uptime %',
+                        data: data.up,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        fill: true,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Response Time (ms)',
+                        data: data.response_times,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderWidth: 2,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#fff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+});
+</script>
+{% endblock %}

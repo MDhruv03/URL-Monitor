@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load django_tables2 %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script>
+    // This will be populated by the template
+    const chartData = {
+        labels: [],
+        uptime: [],
+        responseTimes: []
+    };
+</script>
+
+<!-- Store data in HTML elements -->
+<div id="chart-data" 
+     data-labels='{{ urls_json|escape|default:"[]" }}'
+     data-uptime='{{ uptime_json|escape|default:"[]" }}'
+     data-response-times='{{ response_times_json|escape|default:"[]" }}'
+     style="display:none;"></div>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-black border-primary">
+            <div class="card-body">
+                <h5 class="card-title">Monitored URLs</h5>
+                <h2 class="card-text">{{ stats.total_urls|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-black border-success">
+            <div class="card-body">
+                <h5 class="card-title">UP</h5>
+                <h2 class="card-text">{{ stats.up_urls|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-black border-danger">
+            <div class="card-body">
+                <h5 class="card-title">DOWN</h5>
+                <h2 class="card-text">{{ stats.down_urls|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-black border-info">
+            <div class="card-body">
+                <h5 class="card-title">Avg Response</h5>
+                <h2 class="card-text">{{ stats.avg_response_time|default:0|floatformat:2 }} ms</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Uptime Overview -->
+    <div class="col-md-8 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Uptime Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="uptimeChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Notifications -->
+    <div class="col-md-4 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Recent Notifications</h5>
+                <a href="{% url 'monitor:notifications' %}" class="btn btn-sm btn-outline-light">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications|slice:":5" %}
+                    <a href="{% url 'monitor:mark_notification_read' notification.id %}" 
+                       class="list-group-item list-group-item-action bg-dark text-light border-secondary {% if not notification.is_read %}fw-bold{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ notification.message }}</span>
+                            <small class="text-muted">{{ notification.created_at|naturaltime }}</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item bg-dark text-light border-secondary">
+                        No notifications
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- URL Status Table -->
+    <div class="col-12 mb-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Your Monitored URLs</h5>
+                <a href="{% url 'monitor:add_url' %}" class="btn btn-sm btn-primary">Add URL</a>
+            </div>
+            <div class="card-body">
+                {% if urls %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>URL</th>
+                                <th>Frequency</th>
+                                <th>Status</th>
+                                <th>Uptime (24h)</th>
+                                <th>Avg Response</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for url in urls %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'monitor:url_detail' url.id %}">{{ url.name }}</a>
+                                </td>
+                                <td class="text-truncate" style="max-width: 200px;">{{ url.url }}</td>
+                                <td>{{ url.get_frequency_display }}</td>
+                                <td>
+                                    {% with url.statuses.first as latest %}
+                                    {% if latest %}
+                                        {% if latest.is_up %}
+                                        <span class="badge bg-success">UP</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">DOWN</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">UNKNOWN</span>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                            {% for uptime in uptime_data %}
+                                            {% if uptime.url.id == url.id %}
+                                                {% widthratio uptime.uptime 1 100 as width_percent %}
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" 
+                                                        style="width: 75%;">
+                                                    </div>
+
+                                                        aria-valuenow="{% firstof uptime.uptime '0' %}" 
+                                                        aria-valuemin="0" 
+                                                        aria-valuemax="100">
+                                                        {% firstof uptime.uptime '0' %}%
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                </td>
+                                <td>
+                                    {% for uptime in uptime_data %}
+                                        {% if uptime.url.id == url.id %}
+                                            {{ uptime.avg_response|default:0|floatformat:2 }} ms
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'monitor:check_now' url.id %}" class="btn btn-sm btn-info">Check Now</a>
+                                    <a href="{% url 'monitor:edit_url' url.id %}" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <h5>No URLs being monitored</h5>
+                    <p>Start by adding a URL to monitor</p>
+                    <a href="{% url 'monitor:add_url' %}" class="btn btn-primary">Add URL</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- This is the actual chart rendering code -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('uptimeChart');
+    if (ctx && chartData.labels.length > 0) {
+        new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Uptime % (7 days)',
+                    data: chartData.uptime,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }, {
+                    label: 'Avg Response (ms)',
+                    data: chartData.responseTimes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#fff'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            color: '#fff'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y1: {
+                        position: 'right',
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#fff'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#fff'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
