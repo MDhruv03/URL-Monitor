@@ -1,0 +1,21 @@
+{% load django_tables2 %}
+<div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-700">
+        <thead class="bg-gray-800">
+            <tr>
+                {% for column in table.columns %}
+                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">{{ column.header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700 bg-gray-900">
+            {% for row in table.rows %}
+                <tr>
+                    {% for cell in row %}
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

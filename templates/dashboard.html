@@ -1,271 +1,259 @@
 {% extends 'base.html' %}
 {% load humanize %}
-{% load django_tables2 %}
 
 {% block title %}Dashboard{% endblock %}
 
-{% block extra_head %}
-<script>
-    // This will be populated by the template
-    const chartData = {
-        labels: [],
-        uptime: [],
-        responseTimes: []
-    };
-</script>
-
-<!-- Store data in HTML elements -->
-<div id="chart-data" 
-     data-labels='{{ urls_json|escape|default:"[]" }}'
-     data-uptime='{{ uptime_json|escape|default:"[]" }}'
-     data-response-times='{{ response_times_json|escape|default:"[]" }}'
-     style="display:none;"></div>
-{% endblock %}
 {% block content %}
-<div class="row">
-    <!-- Stats Cards -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-black border-primary">
-            <div class="card-body">
-                <h5 class="card-title">Monitored URLs</h5>
-                <h2 class="card-text">{{ stats.total_urls|default:0 }}</h2>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-black border-success">
-            <div class="card-body">
-                <h5 class="card-title">UP</h5>
-                <h2 class="card-text">{{ stats.up_urls|default:0 }}</h2>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-black border-danger">
-            <div class="card-body">
-                <h5 class="card-title">DOWN</h5>
-                <h2 class="card-text">{{ stats.down_urls|default:0 }}</h2>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-black border-info">
-            <div class="card-body">
-                <h5 class="card-title">Avg Response</h5>
-                <h2 class="card-text">{{ stats.avg_response_time|default:0|floatformat:2 }} ms</h2>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
 
-<div class="row">
-    <!-- Uptime Overview -->
-    <div class="col-md-8 mb-4">
-        <div class="card bg-black border-secondary">
-            <div class="card-header">
-                <h5>Uptime Overview</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="uptimeChart" height="300"></canvas>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <div class="bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-400 truncate">
+                            Monitored URLs
+                        </dt>
+                        <dd class="text-3xl font-bold text-white">
+                            {{ stats.total_urls|default:0 }}
+                        </dd>
+                    </dl>
+                </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Recent Notifications -->
-    <div class="col-md-4 mb-4">
-        <div class="card bg-black border-secondary">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Recent Notifications</h5>
-                <a href="{% url 'monitor:notifications' %}" class="btn btn-sm btn-outline-light">View All</a>
+
+        <div class="bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-400 truncate">
+                            URLs Online
+                        </dt>
+                        <dd class="text-3xl font-bold text-white">
+                            {{ stats.up_urls|default:0 }}
+                        </dd>
+                    </dl>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    {% for notification in notifications|slice:":5" %}
-                    <a href="{% url 'monitor:mark_notification_read' notification.id %}" 
-                       class="list-group-item list-group-item-action bg-dark text-light border-secondary {% if not notification.is_read %}fw-bold{% endif %}">
-                        <div class="d-flex justify-content-between">
-                            <span>{{ notification.message }}</span>
-                            <small class="text-muted">{{ notification.created_at|naturaltime }}</small>
-                        </div>
-                    </a>
-                    {% empty %}
-                    <div class="list-group-item bg-dark text-light border-secondary">
-                        No notifications
-                    </div>
-                    {% endfor %}
+        </div>
+
+        <div class="bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-400 truncate">
+                            URLs Offline
+                        </dt>
+                        <dd class="text-3xl font-bold text-white">
+                            {{ stats.down_urls|default:0 }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                    <dl>
+                        <dt class="text-sm font-medium text-gray-400 truncate">
+                            Avg Response (ms)
+                        </dt>
+                        <dd class="text-3xl font-bold text-white">
+                            {{ stats.avg_response_time|default:0|floatformat:0 }}
+                        </dd>
+                    </dl>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <!-- URL Status Table -->
-    <div class="col-12 mb-4">
-        <div class="card bg-black border-secondary">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Your Monitored URLs</h5>
-                <a href="{% url 'monitor:add_url' %}" class="btn btn-sm btn-primary">Add URL</a>
-            </div>
-            <div class="card-body">
-                {% if urls %}
-                <div class="table-responsive">
-                    <table class="table table-dark table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>URL</th>
-                                <th>Frequency</th>
-                                <th>Status</th>
-                                <th>Uptime (24h)</th>
-                                <th>Avg Response</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for url in urls %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'monitor:url_detail' url.id %}">{{ url.name }}</a>
-                                </td>
-                                <td class="text-truncate" style="max-width: 200px;">{{ url.url }}</td>
-                                <td>{{ url.get_frequency_display }}</td>
-                                <td>
-                                    {% with url.statuses.first as latest %}
-                                    {% if latest %}
-                                        {% if latest.is_up %}
-                                        <span class="badge bg-success">UP</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">DOWN</span>
-                                        {% endif %}
+    <!-- Chart -->
+    <div class="mt-8 bg-gray-800 rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-white">Performance Overview</h2>
+        <div class="mt-4">
+            <canvas id="uptimeChart"></canvas>
+        </div>
+    </div>
+
+    <!-- URL List -->
+    <div class="mt-8 bg-gray-800 rounded-lg shadow">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-white">Monitored URLs</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-700">
+                <thead class="bg-gray-800">
+                    <tr>
+                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">Name</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Status</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Uptime (24h)</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Response Time</th>
+                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                            <span class="sr-only">Edit</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700 bg-gray-900">
+                    {% for url in urls %}
+                    <tr>
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ url.name }}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                            {% with url.statuses.first as latest %}
+                                {% if latest %}
+                                    {% if latest.is_up %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300">
+                                            Online
+                                        </span>
                                     {% else %}
-                                        <span class="badge bg-secondary">UNKNOWN</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-300">
+                                            Offline
+                                        </span>
                                     {% endif %}
-                                    {% endwith %}
-                                </td>
-                                <td>
-                                            {% for uptime in uptime_data %}
-                                            {% if uptime.url.id == url.id %}
-                                                {% widthratio uptime.uptime 1 100 as width_percent %}
-                                                <div class="progress" style="height: 20px;">
-                                                    <div class="progress-bar bg-success" role="progressbar" 
-                                                        style="width: 75%;">
-                                                    </div>
-
-                                                        aria-valuenow="{% firstof uptime.uptime '0' %}" 
-                                                        aria-valuemin="0" 
-                                                        aria-valuemax="100">
-                                                        {% firstof uptime.uptime '0' %}%
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                </td>
-                                <td>
-                                    {% for uptime in uptime_data %}
-                                        {% if uptime.url.id == url.id %}
-                                            {{ uptime.avg_response|default:0|floatformat:2 }} ms
-                                        {% endif %}
-                                    {% endfor %}
-                                </td>
-                                <td>
-                                    <a href="{% url 'monitor:check_now' url.id %}" class="btn btn-sm btn-info">Check Now</a>
-                                    <a href="{% url 'monitor:edit_url' url.id %}" class="btn btn-sm btn-warning">Edit</a>
-                                </td>
-                            </tr>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300">
+                                        Unknown
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                            {% for uptime in uptime_data %}
+                                {% if uptime.url.id == url.id %}
+                                    {{ uptime.uptime|default:0 }}%
+                                {% endif %}
                             {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <h5>No URLs being monitored</h5>
-                    <p>Start by adding a URL to monitor</p>
-                    <a href="{% url 'monitor:add_url' %}" class="btn btn-primary">Add URL</a>
-                </div>
-                {% endif %}
-            </div>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                            {% for uptime in uptime_data %}
+                                {% if uptime.url.id == url.id %}
+                                    {{ uptime.avg_response|default:0|floatformat:0 }}ms
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <a href="{% url 'monitor:edit_url' url.id %}" class="text-indigo-400 hover:text-indigo-300">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- This is the actual chart rendering code -->
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('uptimeChart');
-    if (ctx && chartData.labels.length > 0) {
-        new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: 'Uptime % (7 days)',
-                    data: chartData.uptime,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    tension: 0.1
-                }, {
-                    label: 'Avg Response (ms)',
-                    data: chartData.responseTimes,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    tension: 0.1,
-                    yAxisID: 'y1'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            color: '#fff'
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    }
+    const chartDataElement = document.getElementById('chart-data');
+    if (!chartDataElement) {
+        console.error('Chart data element not found');
+        return;
+    }
+
+    try {
+        const chartData = JSON.parse(chartDataElement.textContent);
+        const ctx = document.getElementById('uptimeChart');
+
+        if (ctx && chartData && chartData.labels.length > 0) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Uptime %',
+                        data: chartData.uptime,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        yAxisID: 'y',
+                    }, {
+                        label: 'Response Time (ms)',
+                        data: chartData.responseTimes,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        yAxisID: 'y1',
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            color: '#fff'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                color: '#9ca3af',
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.2)',
+                            }
                         },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: {
+                                color: '#9ca3af',
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#9ca3af',
+                            },
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.2)',
+                            }
                         }
                     },
-                    y1: {
-                        position: 'right',
-                        beginAtZero: true,
-                        ticks: {
-                            color: '#fff'
-                        },
-                        grid: {
-                            drawOnChartArea: false,
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#fff'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#9ca3af',
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+    } catch (error) {
+        console.error('Error parsing chart data or creating chart:', error);
     }
 });
+</script>
+<script type="application/json" id="chart-data">
+{
+    "labels": {{ urls_json|default:'[]'|safe }},
+    "uptime": {{ uptime_json|default:'[]'|safe }},
+    "responseTimes": {{ response_times_json|default:'[]'|safe }}
+}
 </script>
 {% endblock %}

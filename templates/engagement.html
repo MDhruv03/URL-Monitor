@@ -1,0 +1,67 @@
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-black border-primary">
+            <div class="card-body text-center">
+                <h6>Avg. Session</h6>
+                <h3>{{ avg_duration|floatformat:1 }}s</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-black border-danger">
+            <div class="card-body text-center">
+                <h6>Bounce Rate</h6>
+                <h3>{{ bounce_rate|floatformat:2 }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-black border-success">
+            <div class="card-body text-center">
+                <h6>Avg. Scroll</h6>
+                <h3>{{ avg_scroll|floatformat:0 }}%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4 bg-black border-secondary">
+    <div class="card-header">
+        <h5>Engagement Timeline</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="engagementChart"></canvas>
+    </div>
+</div>
+
+<!-- Render the metrics data as JSON -->
+<script id="metrics-data" type="application/json">
+    {{ metrics_json|safe }}
+</script>
+
+<script>
+var metricsData = JSON.parse(document.getElementById('metrics-data').textContent);
+
+new Chart(document.getElementById('engagementChart'), {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'User Sessions',
+            data: metricsData,
+            backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        }]
+    },
+    options: {
+        scales: {
+            x: { 
+                title: { display: true, text: 'Duration (seconds)' },
+                min: 0
+            },
+            y: { 
+                title: { display: true, text: 'Scroll Depth (%)' },
+                min: 0, max: 100
+            }
+        }
+    }
+});
+</script>

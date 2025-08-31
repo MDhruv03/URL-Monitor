@@ -9,7 +9,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
-from .models import MonitoredURL, URLStatus, Alert, Notification
+from .models import MonitoredURL, URLStatus, Alert, Notification,TrafficMetric,UserFlow,Engagement
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -20,6 +20,7 @@ from .forms import (
 from django_tables2 import RequestConfig
 from .tables import URLTable, StatusTable, AlertTable, NotificationTable
 import json
+from geopy.geocoders import Nominatim
 
 def register(request):
     if request.method == 'POST':
@@ -95,6 +96,10 @@ def dashboard(request):
     
     # Get uptime stats for the last 7 days
     uptime_data = []
+    chart_labels = []
+    chart_uptime = []
+    chart_response_times = []
+    
     for url in urls:
         statuses = url.statuses.filter(
             timestamp__gte=timezone.now() - timedelta(days=7)
@@ -103,17 +108,64 @@ def dashboard(request):
         if statuses.exists():
             up_count = statuses.filter(is_up=True).count()
             uptime_percent = (up_count / statuses.count()) * 100
+            avg_response = statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
+            
             uptime_data.append({
                 'url': url,
                 'uptime': round(uptime_percent, 2),
-                'avg_response': round(statuses.aggregate(avg=Avg('response_time'))['avg'], 2)
+                'avg_response': round(avg_response, 2) if avg_response else 0
             })
+    
+    # Prepare chart data for the last 7 days
+    if urls.exists():
+        # Get daily aggregated data for charts
+        from datetime import date
+        today = timezone.now().date()
+        
+        for i in range(6, -1, -1):  # Last 7 days
+            day = today - timedelta(days=i)
+            day_start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
+            day_end = day_start + timedelta(days=1)
+            
+            # Get statuses for this day across all URLs
+            day_statuses = URLStatus.objects.filter(
+                url__user=request.user,
+                url__is_active=True,
+                timestamp__gte=day_start,
+                timestamp__lt=day_end
+            )
+            
+            if day_statuses.exists():
+                # Calculate uptime percentage for this day
+                up_count = day_statuses.filter(is_up=True).count()
+                total_count = day_statuses.count()
+                uptime_pct = round((up_count / total_count) * 100, 2) if total_count > 0 else 0
+                
+                # Calculate average response time for this day
+                avg_response = day_statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
+                avg_response = round(avg_response, 2) if avg_response else 0
+                
+                chart_labels.append(day.strftime('%b %d'))
+                chart_uptime.append(uptime_pct)
+                chart_response_times.append(avg_response)
+            else:
+                chart_labels.append(day.strftime('%b %d'))
+                chart_uptime.append(0)
+                chart_response_times.append(0)
+    
+    # Convert to JSON for JavaScript
+    urls_json = json.dumps(chart_labels)
+    uptime_json = json.dumps(chart_uptime)
+    response_times_json = json.dumps(chart_response_times)
     
     context = {
         'stats': stats,
         'notifications': notifications,
         'uptime_data': uptime_data,
         'urls': urls,
+        'urls_json': urls_json,
+        'uptime_json': uptime_json,
+        'response_times_json': response_times_json,
     }
     return render(request, 'dashboard.html', context)
 
@@ -337,3 +389,92 @@ def settings_view(request):
         form = NotificationSettingsForm(request.user)
     
     return render(request, 'settings.html', {'form': form})
+
+@login_required
+def traffic_dashboard(request, url_id):
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    metrics = TrafficMetric.objects.filter(url=url).order_by('-timestamp')[:24]
+    
+    # Process data for charts
+    time_labels = [m.timestamp.strftime('%H:%M') for m in metrics]
+    request_data = [m.requests for m in metrics]
+    bandwidth_data = [m.bandwidth for m in metrics]
+    
+    return render(request, 'traffic_dashboard.html', {
+        'url': url,
+        'time_labels': time_labels,
+        'request_data': request_data,
+        'bandwidth_data': bandwidth_data
+    })
+
+# Geocode function (caching enabled in memory for this view)
+def get_lat_long(location_name):
+    geolocator = Nominatim(user_agent="heatmap_app")
+    try:
+        location = geolocator.geocode(location_name)
+        if location:
+            return (location.latitude, location.longitude)
+    except Exception:
+        pass
+    return (None, None)
+
+def performance_heatmap(request, url_id):
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    metrics = URLStatus.objects.filter(url=url).select_related('url')
+    
+    # Group by country
+    country_data = metrics.values('country').annotate(
+        avg_response=Avg('response_time'),
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    # Only one geocode per country
+    heatmap_data = []
+    for c in country_data:
+        lat, lng = get_lat_long(c['country'])
+        if lat is not None and lng is not None:
+            heatmap_data.append({
+                'lat': lat,
+                'lng': lng,
+                'value': c['avg_response']
+            })
+    
+    return render(request, 'performance_heatmap.html', {
+        'url': url,
+        'heatmap_data': json.dumps(heatmap_data),
+        'country_data': country_data
+    })
+
+
+def user_flows(request, url_id):
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    flows = UserFlow.objects.filter(url=url).order_by('-timestamp_end')[:100]
+    
+    # Process for Sankey diagram
+    path_links = {}
+    for flow in flows:
+        path = flow.path_sequence
+        for i in range(len(path)-1):
+            key = f"{path[i]}→{path[i+1]}"
+            path_links[key] = path_links.get(key, 0) + 1
+    
+    return render(request, 'user_flows.html', {
+        'url': url,
+        'flows': flows,
+        'path_links': path_links
+    })
+
+def engagement_metrics(request, url_id):
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    metrics = Engagement.objects.filter(url=url).order_by('-timestamp')[:1000]
+    
+    # Calculate aggregates
+    avg_duration = metrics.aggregate(avg=Avg('duration'))['avg']
+    bounce_rate = metrics.filter(interactions__lt=2).count() / metrics.count()
+    
+    return render(request, 'engagement.html', {
+        'url': url,
+        'metrics': metrics,
+        'avg_duration': avg_duration,
+        'bounce_rate': bounce_rate
+    })

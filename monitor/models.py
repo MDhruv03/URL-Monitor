@@ -81,3 +81,28 @@ class Notification(models.Model):
     
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message[:50]}..."
+    
+class TrafficMetric(models.Model):
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    requests = models.PositiveIntegerField()  # Total requests
+    bandwidth = models.FloatField()  # In MB
+    status_distribution = models.JSONField()  # {200: 85, 404: 2, 500: 1}
+    unique_visitors = models.PositiveIntegerField()
+
+class UserFlow(models.Model):
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE)
+    session_id = models.CharField(max_length=100)
+    path_sequence = models.JSONField()  # ['/', '/products', '/checkout']
+    timestamp_start = models.DateTimeField()
+    timestamp_end = models.DateTimeField()
+    exit_page = models.CharField(max_length=200)
+
+class Engagement(models.Model):
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE)
+    session_id = models.CharField(max_length=100)
+    duration = models.FloatField()  # Seconds
+    scroll_depth = models.FloatField()  # Percentage 0-100
+    interactions = models.PositiveIntegerField()  # Clicks, form interactions
+    timestamp = models.DateTimeField(auto_now_add=True)   
+

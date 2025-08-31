@@ -54,4 +54,9 @@ urlpatterns = [
     
     # Settings
     path('settings/', views.settings_view, name='settings'),
+
+    path('analytics/traffic/<uuid:url_id>/', views.traffic_dashboard, name='traffic_dashboard'),
+    path('analytics/heatmap/<uuid:url_id>/', views.performance_heatmap, name='performance_heatmap'),
+    path('analytics/flows/<uuid:url_id>/', views.user_flows, name='user_flows'),
+    path('analytics/engagement/<uuid:url_id>/', views.engagement_metrics, name='engagement_metrics'),
 ]

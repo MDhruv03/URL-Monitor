@@ -1,0 +1,63 @@
+<div class="row">
+    <div class="col-md-8">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Common User Paths</h5>
+            </div>
+            <div class="card-body">
+                <div id="sankey" style="height: 500px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-black border-secondary">
+            <div class="card-header">
+                <h5>Exit Pages</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="exitChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Precomputed data injected as JSON from the server
+var labels = JSON.parse('{{ labels|tojson|escapejs }}');
+var sources = JSON.parse('{{ sources|tojson|escapejs }}');
+var targets = JSON.parse('{{ targets|tojson|escapejs }}');
+var values = JSON.parse('{{ values|tojson|escapejs }}');
+
+// Sankey Diagram
+var data = {
+    type: "sankey",
+    node: {
+        pad: 15,
+        thickness: 20,
+        line: { color: "black", width: 0.5 },
+        label: labels
+    },
+    link: {
+        source: sources,
+        target: targets,
+        value: values
+    }
+};
+
+Plotly.newPlot('sankey', [data], {plot_bgcolor: '#121212', paper_bgcolor: '#121212'});
+
+// Exit Pages Chart
+new Chart(document.getElementById('exitChart'), {
+    type: 'doughnut',
+    data: {
+        labels: JSON.parse('{{ exit_pages|escapejs }}'),
+        datasets: [{
+            data: JSON.parse('{{ exit_counts|escapejs }}'),
+            backgroundColor: [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'
+            ]
+        }]
+    }
+});
+</script>

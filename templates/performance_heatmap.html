@@ -1,0 +1,38 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+<div class="card bg-black border-secondary">
+    <div class="card-header">
+        <h5>Global Response Times</h5>
+    </div>
+    <div class="card-body">
+        <div id="heatmap" style="height: 400px;"></div>
+        <div class="mt-3">
+            <table class="table table-dark">
+                <thead>
+                    <tr><th>Country</th><th>Avg Response</th><th>Checks</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in country_data %}
+                    <tr>
+                        <td>{{ item.country }}</td>
+                        <td>{{ item.avg_response|floatformat:2 }} ms</td>
+                        <td>{{ item.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script>
+var map = L.map('heatmap').setView([20, 0], 2);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+var heatData = JSON.parse('{{ heatmap_data|escapejs }}');
+var heatmap = L.heatLayer(
+    heatData.map(item => [item.lat, item.lng, item.value]),
+    {radius: 25, blur: 15}
+).addTo(map);
+</script>
