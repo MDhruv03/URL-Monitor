@@ -1,62 +1,135 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-900 text-white">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Monitor - {% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} · URL Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        gray: {
-                            800: '#1f2937',
-                            900: '#111827',
+                        'dark': '#0a0a0a',
+                        'darker': '#050505',
+                        'light': '#fafafa',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    animation: {
+                        'fadeIn': 'fadeIn 0.5s ease-in-out',
+                        'slideUp': 'slideUp 0.4s ease-out',
+                        'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        'pulse-subtle': {
+                            '0%, 100%': { opacity: '1' },
+                            '50%': { opacity: '0.7' },
                         },
                     },
                 },
             },
         }
     </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+        .gradient-text { background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .divider { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent); height: 1px; }
+    </style>
 </head>
-<body class="flex flex-col min-h-screen">
-    <nav class="bg-gray-800 border-b border-gray-700">
+<body class="min-h-screen bg-darker text-white flex flex-col antialiased">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-effect border-b border-white/5" x-data="{ mobileMenuOpen: false }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <div class="flex items-center">
-                    <a href="{% url 'monitor:dashboard' %}" class="text-white font-bold text-xl">
-                        URL Monitor
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'monitor:dashboard' %}" class="flex items-center space-x-3 group">
+                        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                            <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <span class="text-lg font-semibold tracking-tight">URL Monitor</span>
                     </a>
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="{% url 'monitor:dashboard' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                        <a href="{% url 'monitor:url_list' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">URLs</a>
-                        <a href="{% url 'monitor:alert_list' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Alerts</a>
-                    </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="{% url 'monitor:dashboard' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Dashboard</a>
+                    <a href="{% url 'monitor:url_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">URLs</a>
+                    <a href="{% url 'monitor:group_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Groups</a>
+                    <a href="{% url 'monitor:alert_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Alerts</a>
+                    <a href="{% url 'monitor:status_page_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Status</a>
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-4 flex items-center md:ml-6">
-                        <a href="{% url 'monitor:settings' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Settings</a>
-                        <a href="{% url 'monitor:logout' %}" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Logout</a>
-                    </div>
+                
+                <!-- User Menu -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <a href="{% url 'monitor:settings' %}" class="p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200" title="Settings">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </a>
+                    <a href="{% url 'monitor:logout' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Logout</a>
                 </div>
+
+                <!-- Mobile menu button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div x-show="mobileMenuOpen" x-transition class="md:hidden border-t border-white/5">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="{% url 'monitor:dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Dashboard</a>
+                <a href="{% url 'monitor:url_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">URLs</a>
+                <a href="{% url 'monitor:group_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Groups</a>
+                <a href="{% url 'monitor:alert_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Alerts</a>
+                <a href="{% url 'monitor:status_page_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Status</a>
+                <div class="divider my-2"></div>
+                <a href="{% url 'monitor:settings' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Settings</a>
+                <a href="{% url 'monitor:logout' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Logout</a>
             </div>
         </div>
     </nav>
 
-    <main class="flex-grow">
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <!-- Main Content -->
+    <main class="flex-grow animate-fadeIn">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {% if messages %}
-                <div class="mb-6 space-y-3">
+                <div class="mb-8 space-y-3 animate-slideUp">
                     {% for message in messages %}
-                        <div class="bg-gray-800 border border-gray-700 text-white px-4 py-3 rounded-lg relative" role="alert">
-                            <span class="block sm:inline">{{ message }}</span>
+                        <div class="glass-effect rounded-xl px-6 py-4 border-l-4 border-white" role="alert">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-sm">{{ message }}</span>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
@@ -65,13 +138,25 @@
         </div>
     </main>
 
-    <footer class="bg-gray-800 border-t border-gray-700">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-gray-400 text-sm">
-                &copy; {% now "Y" %} URL Monitor. All rights reserved.
-            </p>
+    <!-- Footer -->
+    <footer class="border-t border-white/5 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+                <div class="flex items-center space-x-2 text-sm text-white/40">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span>© {% now "Y" %} URL Monitor</span>
+                </div>
+                <div class="flex items-center space-x-6 text-xs text-white/30">
+                    <span>Monitoring with precision</span>
+                    <span>•</span>
+                    <span>Built with Django</span>
+                </div>
+            </div>
         </div>
     </footer>
+    
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>

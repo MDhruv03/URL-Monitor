@@ -4,157 +4,187 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="px-4 sm:px-6 lg:px-8 py-8">
-    <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
+<div class="space-y-8 animate-slideUp">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p class="mt-2 text-white/50 text-sm">Real-time monitoring overview</p>
+        </div>
+        <a href="{% url 'monitor:add_url' %}" class="group relative px-6 py-3 bg-white text-black rounded-xl font-medium hover:bg-white/90 transition-all duration-200 hover-lift">
+            <span class="flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <span>Add URL</span>
+            </span>
+        </a>
+    </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <div class="bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                    </svg>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-effect rounded-2xl p-6 hover-lift group">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-white/50 mb-2 font-medium">Monitored URLs</p>
+                    <p class="text-4xl font-bold tracking-tight">{{ stats.total_urls|default:0 }}</p>
                 </div>
-                <div class="ml-5 w-0 flex-1">
-                    <dl>
-                        <dt class="text-sm font-medium text-gray-400 truncate">
-                            Monitored URLs
-                        </dt>
-                        <dd class="text-3xl font-bold text-white">
-                            {{ stats.total_urls|default:0 }}
-                        </dd>
-                    </dl>
+                <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+        <div class="glass-effect rounded-2xl p-6 hover-lift group border-l-4 border-green-500">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-white/50 mb-2 font-medium">Online</p>
+                    <p class="text-4xl font-bold tracking-tight text-green-400">{{ stats.up_urls|default:0 }}</p>
                 </div>
-                <div class="ml-5 w-0 flex-1">
-                    <dl>
-                        <dt class="text-sm font-medium text-gray-400 truncate">
-                            URLs Online
-                        </dt>
-                        <dd class="text-3xl font-bold text-white">
-                            {{ stats.up_urls|default:0 }}
-                        </dd>
-                    </dl>
+                <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+        <div class="glass-effect rounded-2xl p-6 hover-lift group border-l-4 border-red-500">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-white/50 mb-2 font-medium">Offline</p>
+                    <p class="text-4xl font-bold tracking-tight text-red-400">{{ stats.down_urls|default:0 }}</p>
                 </div>
-                <div class="ml-5 w-0 flex-1">
-                    <dl>
-                        <dt class="text-sm font-medium text-gray-400 truncate">
-                            URLs Offline
-                        </dt>
-                        <dd class="text-3xl font-bold text-white">
-                            {{ stats.down_urls|default:0 }}
-                        </dd>
-                    </dl>
+                <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
+                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+        <div class="glass-effect rounded-2xl p-6 hover-lift group">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="text-sm text-white/50 mb-2 font-medium">Avg Response</p>
+                    <p class="text-4xl font-bold tracking-tight">{{ stats.avg_response_time|default:0|floatformat:0 }}<span class="text-lg text-white/50 ml-1">ms</span></p>
                 </div>
-                <div class="ml-5 w-0 flex-1">
-                    <dl>
-                        <dt class="text-sm font-medium text-gray-400 truncate">
-                            Avg Response (ms)
-                        </dt>
-                        <dd class="text-3xl font-bold text-white">
-                            {{ stats.avg_response_time|default:0|floatformat:0 }}
-                        </dd>
-                    </dl>
+                <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chart -->
-    <div class="mt-8 bg-gray-800 rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-white">Performance Overview</h2>
-        <div class="mt-4">
+    <!-- Chart Section -->
+    <div class="glass-effect rounded-2xl p-8 hover-lift">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-semibold">Performance Overview</h2>
+            <div class="flex items-center space-x-2 text-sm text-white/50">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse-subtle"></div>
+                <span>Live</span>
+            </div>
+        </div>
+        <div style="height: 300px;">
             <canvas id="uptimeChart"></canvas>
         </div>
     </div>
 
     <!-- URL List -->
-    <div class="mt-8 bg-gray-800 rounded-lg shadow">
-        <div class="p-6">
-            <h2 class="text-xl font-semibold text-white">Monitored URLs</h2>
+    <div class="glass-effect rounded-2xl overflow-hidden">
+        <div class="p-6 border-b border-white/5">
+            <h2 class="text-2xl font-semibold">Monitored URLs</h2>
+            <p class="mt-1 text-sm text-white/50">Quick status overview of all your endpoints</p>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-700">
-                <thead class="bg-gray-800">
-                    <tr>
-                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6">Name</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Status</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Uptime (24h)</th>
-                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Response Time</th>
-                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                            <span class="sr-only">Edit</span>
+            <table class="min-w-full divide-y divide-white/5">
+                <thead>
+                    <tr class="bg-white/[0.02]">
+                        <th scope="col" class="py-4 pl-6 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-white/70">Name</th>
+                        <th scope="col" class="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-white/70">Status</th>
+                        <th scope="col" class="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-white/70">Uptime (24h)</th>
+                        <th scope="col" class="px-3 py-4 text-left text-xs font-semibold uppercase tracking-wider text-white/70">Response</th>
+                        <th scope="col" class="relative py-4 pl-3 pr-6">
+                            <span class="sr-only">Actions</span>
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-700 bg-gray-900">
+                <tbody class="divide-y divide-white/5">
                     {% for url in urls %}
-                    <tr>
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">{{ url.name }}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                    <tr class="hover:bg-white/[0.02] transition-colors group">
+                        <td class="py-4 pl-6 pr-3 text-sm">
+                            <div class="font-medium text-white">{{ url.name }}</div>
+                            <div class="text-white/40 text-xs mt-1 truncate max-w-md">{{ url.url }}</div>
+                        </td>
+                        <td class="px-3 py-4 text-sm">
                             {% with url.statuses.first as latest %}
                                 {% if latest %}
                                     {% if latest.is_up %}
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-300">
-                                            Online
+                                        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                            <span>Online</span>
                                         </span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-300">
-                                            Offline
+                                        <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                            <div class="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                                            <span>Offline</span>
                                         </span>
                                     {% endif %}
                                 {% else %}
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-300">
-                                        Unknown
+                                    <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 text-white/50 border border-white/10">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-white/50"></div>
+                                        <span>Unknown</span>
                                     </span>
                                 {% endif %}
                             {% endwith %}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                        <td class="px-3 py-4 text-sm">
                             {% for uptime in uptime_data %}
                                 {% if uptime.url.id == url.id %}
-                                    {{ uptime.uptime|default:0 }}%
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style="width: {{ uptime.uptime|default:0 }}%"></div>
+                                        </div>
+                                        <span class="text-white/70 font-medium w-12 text-right">{{ uptime.uptime|default:0 }}%</span>
+                                    </div>
                                 {% endif %}
                             {% endfor %}
                         </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
+                        <td class="px-3 py-4 text-sm">
                             {% for uptime in uptime_data %}
                                 {% if uptime.url.id == url.id %}
-                                    {{ uptime.avg_response|default:0|floatformat:0 }}ms
+                                    <span class="font-mono text-white/70">{{ uptime.avg_response|default:0|floatformat:0 }}ms</span>
                                 {% endif %}
                             {% endfor %}
                         </td>
-                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <a href="{% url 'monitor:edit_url' url.id %}" class="text-indigo-400 hover:text-indigo-300">Edit</a>
+                        <td class="relative py-4 pl-3 pr-6 text-right text-sm font-medium">
+                            <a href="{% url 'monitor:edit_url' url.id %}" class="text-white/50 hover:text-white transition-colors group-hover:opacity-100 opacity-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                </svg>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-16 text-center">
+                            <svg class="mx-auto h-12 w-12 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <h3 class="mt-4 text-lg font-medium text-white/70">No URLs monitored yet</h3>
+                            <p class="mt-2 text-sm text-white/40">Get started by adding your first URL to monitor.</p>
+                            <div class="mt-6">
+                                <a href="{% url 'monitor:add_url' %}" class="inline-flex items-center px-4 py-2 bg-white text-black rounded-lg text-sm font-medium hover:bg-white/90 transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Add Your First URL
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -169,10 +199,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const chartDataElement = document.getElementById('chart-data');
-    if (!chartDataElement) {
-        console.error('Chart data element not found');
-        return;
-    }
+    if (!chartDataElement) return;
 
     try {
         const chartData = JSON.parse(chartDataElement.textContent);
@@ -186,20 +213,65 @@ document.addEventListener('DOMContentLoaded', function() {
                     datasets: [{
                         label: 'Uptime %',
                         data: chartData.uptime,
-                        borderColor: 'rgb(34, 197, 94)',
+                        borderColor: '#22c55e',
                         backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
                         yAxisID: 'y',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#22c55e',
+                        pointBorderColor: '#000',
+                        pointBorderWidth: 2,
                     }, {
                         label: 'Response Time (ms)',
                         data: chartData.responseTimes,
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: '#ffffff',
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
                         yAxisID: 'y1',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#000',
+                        pointBorderWidth: 2,
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 12,
+                                    weight: '500',
+                                },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: 'rgba(255, 255, 255, 0.8)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: true,
+                            cornerRadius: 8,
+                        }
+                    },
                     scales: {
                         y: {
                             type: 'linear',
@@ -208,10 +280,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             min: 0,
                             max: 100,
                             ticks: {
-                                color: '#9ca3af',
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                font: { size: 11 },
+                                callback: function(value) { return value + '%'; }
                             },
                             grid: {
-                                color: 'rgba(156, 163, 175, 0.2)',
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false,
                             }
                         },
                         y1: {
@@ -219,7 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             display: true,
                             position: 'right',
                             ticks: {
-                                color: '#9ca3af',
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                font: { size: 11 },
+                                callback: function(value) { return value + 'ms'; }
                             },
                             grid: {
                                 drawOnChartArea: false,
@@ -227,17 +304,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         },
                         x: {
                             ticks: {
-                                color: '#9ca3af',
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                font: { size: 11 },
                             },
                             grid: {
-                                color: 'rgba(156, 163, 175, 0.2)',
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#9ca3af',
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false,
                             }
                         }
                     }
@@ -245,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     } catch (error) {
-        console.error('Error parsing chart data or creating chart:', error);
+        console.error('Chart error:', error);
     }
 });
 </script>

@@ -1,29 +1,45 @@
-{% extends 'base.html' %}
-
-{% block title %}Register{% endblock %}
-
-{% block content %}
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div class="text-center">
-            <h2 class="mt-6 text-3xl font-bold text-gray-900">Create your account</h2>
-            <p class="mt-2 text-sm text-gray-600">Start monitoring your URLs today</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register · URL Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .glass-effect { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="min-h-screen bg-[#050505] text-white flex items-center justify-center antialiased py-12">
+    <div class="w-full max-w-md px-4">
+        <!-- Logo -->
+        <div class="text-center mb-10 animate-fadeIn">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-6">
+                <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight">Create your account</h1>
+            <p class="mt-2 text-white/50">Start monitoring your URLs today</p>
         </div>
         
-        <div class="card p-8 animate-fade-in">
-            <form method="post" class="space-y-6">
+        <!-- Form -->
+        <div class="glass-effect rounded-2xl p-8">
+            <form method="post" class="space-y-5">
                 {% csrf_token %}
                 
                 {% if form.errors %}
-                    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl">
                         <div class="flex items-start space-x-2">
-                            <svg class="w-5 h-5 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <div>
+                            <div class="text-sm space-y-1">
                                 {% for field, errors in form.errors.items %}
                                     {% for error in errors %}
-                                        <p class="text-sm">{{ error }}</p>
+                                        <p>{{ error }}</p>
                                     {% endfor %}
                                 {% endfor %}
                             </div>
@@ -31,10 +47,10 @@
                     </div>
                 {% endif %}
                 
-                <div>
-                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                <div class="space-y-2">
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70">Username</label>
                     <input type="text" 
-                           class="form-input" 
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
                            id="{{ form.username.id_for_label }}" 
                            name="{{ form.username.html_name }}"
                            placeholder="Choose a username"
@@ -42,53 +58,56 @@
                            autofocus>
                 </div>
                 
-                <div>
-                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                <div class="space-y-2">
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-white/70">Email</label>
                     <input type="email" 
-                           class="form-input" 
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
                            id="{{ form.email.id_for_label }}" 
                            name="{{ form.email.html_name }}"
-                           placeholder="Enter your email"
+                           placeholder="your@email.com"
                            required>
                 </div>
                 
-                <div>
-                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                <div class="space-y-2">
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white/70">Password</label>
                     <input type="password" 
-                           class="form-input" 
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
                            id="{{ form.password1.id_for_label }}" 
                            name="{{ form.password1.html_name }}"
                            placeholder="Create a strong password"
                            required>
-                    <p class="mt-2 text-xs text-gray-500">
-                        Must contain at least 8 characters with letters and numbers
-                    </p>
+                    <p class="text-xs text-white/40">At least 8 characters with letters and numbers</p>
                 </div>
                 
-                <div>
-                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                <div class="space-y-2">
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white/70">Confirm Password</label>
                     <input type="password" 
-                           class="form-input" 
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
                            id="{{ form.password2.id_for_label }}" 
                            name="{{ form.password2.html_name }}"
                            placeholder="Confirm your password"
                            required>
                 </div>
                 
-                <button type="submit" class="btn btn-primary w-full py-3 text-base font-semibold">
+                <button type="submit" class="w-full py-3 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all duration-200 transform hover:scale-[1.02] mt-6">
                     Create Account
                 </button>
             </form>
             
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">
+            <div class="mt-8 pt-6 border-t border-white/5 text-center">
+                <p class="text-sm text-white/50">
                     Already have an account? 
-                    <a href="{% url 'monitor:login' %}" class="font-medium text-black hover:text-gray-700 transition-colors duration-200">
-                        Sign in here
+                    <a href="{% url 'monitor:login' %}" class="font-medium text-white hover:text-white/80 transition-colors">
+                        Sign in
                     </a>
                 </p>
             </div>
         </div>
+        
+        <!-- Footer -->
+        <div class="mt-8 text-center text-xs text-white/30">
+            © {% now "Y" %} URL Monitor
+        </div>
     </div>
-</div>
-{% endblock %}
+</body>
+</html>

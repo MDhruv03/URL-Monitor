@@ -27,28 +27,16 @@ class URLTable(tables.Table):
     
     def render_actions(self, value, record):
         return format_html(
-             '''
-        <div class="btn-group">
-            <a href="{}" class="btn btn-sm btn-info">Status</a>
-            <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" 
-                    data-bs-toggle="dropdown">
-            </button>
-            <div class="dropdown-menu">
-                <a class="dropdown-item" href="{}">Traffic</a>
-                <a class="dropdown-item" href="{}">User Flows</a>
-                <a class="dropdown-item" href="{}">Engagement</a>
-                '<a href="{}" class="btn btn-sm btn-info">Check Now</a> '
-            '<a href="{}" class="btn btn-sm btn-warning">Edit</a> '
-            '<a href="{}" class="btn btn-sm btn-danger">Delete</a>',
-        </div>
-        ''',
-        reverse('monitor:url_detail', args=[record.id]),
-        reverse('monitor:traffic_dashboard', args=[record.id]),
-        reverse('monitor:user_flows', args=[record.id]),
-        reverse('monitor:engagement_metrics', args=[record.id]),
-        reverse('monitor:check_now', args=[record.id]),
-        reverse('monitor:edit_url', args=[record.id]),
-        reverse('monitor:delete_url', args=[record.id])
+            '<div class="btn-group">'
+            '<a href="{}" class="btn btn-sm btn-info">View</a>'
+            '<a href="{}" class="btn btn-sm btn-info">Check</a>'
+            '<a href="{}" class="btn btn-sm btn-warning">Edit</a>'
+            '<a href="{}" class="btn btn-sm btn-danger">Delete</a>'
+            '</div>',
+            reverse('monitor:url_detail', args=[record.id]),
+            reverse('monitor:check_now', args=[record.id]),
+            reverse('monitor:edit_url', args=[record.id]),
+            reverse('monitor:delete_url', args=[record.id])
         )
 
 class StatusTable(tables.Table):

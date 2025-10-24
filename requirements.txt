@@ -1,0 +1,27 @@
+# Django Framework
+Django==5.2.1
+django-tables2==2.7.0
+django-filters==24.3
+django-crispy-forms==2.3
+crispy-tailwind==1.0.3
+
+# Task Queue
+celery==5.4.0
+redis==5.2.0
+
+# HTTP Requests
+requests==2.32.3
+
+# Database (Production)
+# psycopg2-binary==2.9.9  # Uncomment for PostgreSQL
+
+# Email & Notifications
+# python-telegram-bot==20.7  # Uncomment if using Telegram alerts
+
+# Utilities
+python-decouple==3.8
+
+# Development Dependencies (optional)
+# pytest==8.3.3
+# pytest-django==4.9.0
+# coverage==7.6.4

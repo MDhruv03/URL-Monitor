@@ -1,18 +1,26 @@
 {
   "name": "url_monitor",
   "version": "1.0.0",
-  "description": "",
+  "description": "A comprehensive Django-based URL monitoring application",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --watch"
+    "build:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css",
+    "watch:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --watch",
+    "dev": "npm run watch:css"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MDhruv03/URL-Monitor.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "url-monitoring",
+    "uptime",
+    "django",
+    "celery",
+    "redis"
+  ],
+  "author": "MDhruv03",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {

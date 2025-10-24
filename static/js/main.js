@@ -481,6 +481,12 @@ function getCookie(name) {
 window.addEventListener('load', function() {
     const startTime = Date.now();
     let scrollDepth = 0;
+    let trackClicksCount = 0;
+    
+    // Track clicks
+    document.addEventListener('click', function() {
+        trackClicksCount++;
+    });
     
     window.addEventListener('scroll', function() {
         scrollDepth = Math.max(scrollDepth, 

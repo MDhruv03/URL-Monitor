@@ -2,14 +2,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
-from .models import MonitoredURL, URLStatus, Alert, Notification,TrafficMetric,UserFlow,Engagement
+from .models import (
+    MonitoredURL, URLStatus, Alert, Notification,
+    TrafficMetric, UserFlow, Engagement,
+    URLGroup, StatusPage, StatusPageURL
+)
 from .forms import (
     UserRegistrationForm,
     UserLoginForm,
@@ -20,7 +24,7 @@ from .forms import (
 from django_tables2 import RequestConfig
 from .tables import URLTable, StatusTable, AlertTable, NotificationTable
 import json
-from geopy.geocoders import Nominatim
+import csv
 
 def register(request):
     if request.method == 'POST':
@@ -220,7 +224,7 @@ def url_detail(request, url_id):
 @require_http_methods(['GET', 'POST'])
 def add_url(request):
     if request.method == 'POST':
-        form = URLForm(request.POST)
+        form = URLForm(request.user, request.POST)
         if form.is_valid():
             url = form.save(commit=False)
             url.user = request.user
@@ -228,7 +232,7 @@ def add_url(request):
             messages.success(request, 'URL added successfully!')
             return redirect('monitor:url_list')
     else:
-        form = URLForm()
+        form = URLForm(request.user)
     return render(request, 'url_form.html', {'form': form, 'action': 'Add'})
 
 @login_required
@@ -236,13 +240,13 @@ def add_url(request):
 def edit_url(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
     if request.method == 'POST':
-        form = URLForm(request.POST, instance=url)
+        form = URLForm(request.user, request.POST, instance=url)
         if form.is_valid():
             form.save()
             messages.success(request, 'URL updated successfully!')
             return redirect('monitor:url_detail', url_id=url.id)
     else:
-        form = URLForm(instance=url)
+        form = URLForm(request.user, instance=url)
     return render(request, 'url_form.html', {'form': form, 'action': 'Edit'})
 
 @login_required
@@ -396,56 +400,18 @@ def traffic_dashboard(request, url_id):
     metrics = TrafficMetric.objects.filter(url=url).order_by('-timestamp')[:24]
     
     # Process data for charts
-    time_labels = [m.timestamp.strftime('%H:%M') for m in metrics]
-    request_data = [m.requests for m in metrics]
-    bandwidth_data = [m.bandwidth for m in metrics]
+    time_labels = [m.timestamp.strftime('%H:%M') for m in reversed(metrics)]
+    request_data = [m.requests for m in reversed(metrics)]
+    bandwidth_data = [m.bandwidth for m in reversed(metrics)]
     
     return render(request, 'traffic_dashboard.html', {
         'url': url,
-        'time_labels': time_labels,
-        'request_data': request_data,
-        'bandwidth_data': bandwidth_data
+        'time_labels': json.dumps(time_labels),
+        'request_data': json.dumps(request_data),
+        'bandwidth_data': json.dumps(bandwidth_data)
     })
 
-# Geocode function (caching enabled in memory for this view)
-def get_lat_long(location_name):
-    geolocator = Nominatim(user_agent="heatmap_app")
-    try:
-        location = geolocator.geocode(location_name)
-        if location:
-            return (location.latitude, location.longitude)
-    except Exception:
-        pass
-    return (None, None)
-
-def performance_heatmap(request, url_id):
-    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    metrics = URLStatus.objects.filter(url=url).select_related('url')
-    
-    # Group by country
-    country_data = metrics.values('country').annotate(
-        avg_response=Avg('response_time'),
-        count=Count('id')
-    ).order_by('-count')[:10]
-    
-    # Only one geocode per country
-    heatmap_data = []
-    for c in country_data:
-        lat, lng = get_lat_long(c['country'])
-        if lat is not None and lng is not None:
-            heatmap_data.append({
-                'lat': lat,
-                'lng': lng,
-                'value': c['avg_response']
-            })
-    
-    return render(request, 'performance_heatmap.html', {
-        'url': url,
-        'heatmap_data': json.dumps(heatmap_data),
-        'country_data': country_data
-    })
-
-
+@login_required
 def user_flows(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
     flows = UserFlow.objects.filter(url=url).order_by('-timestamp_end')[:100]
@@ -470,11 +436,236 @@ def engagement_metrics(request, url_id):
     
     # Calculate aggregates
     avg_duration = metrics.aggregate(avg=Avg('duration'))['avg']
-    bounce_rate = metrics.filter(interactions__lt=2).count() / metrics.count()
+    bounce_rate = metrics.filter(interactions__lt=2).count() / metrics.count() if metrics.count() > 0 else 0
     
     return render(request, 'engagement.html', {
         'url': url,
         'metrics': metrics,
         'avg_duration': avg_duration,
         'bounce_rate': bounce_rate
+    })
+
+# ==================== EXPORT VIEWS ====================
+
+@login_required
+def export_url_data(request, url_id, format='csv'):
+    """Export URL monitoring data to CSV or JSON"""
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    statuses = url.statuses.all()[:1000]  # Last 1000 records
+    
+    if format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{url.name}_data.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Timestamp', 'Status Code', 'Response Time (ms)', 'Is Up', 'Error Message'])
+        
+        for status in statuses:
+            writer.writerow([
+                status.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                status.status_code,
+                f"{status.response_time:.2f}",
+                'Yes' if status.is_up else 'No',
+                status.error_message or ''
+            ])
+        
+        return response
+    
+    elif format == 'json':
+        data = {
+            'url': {
+                'name': url.name,
+                'url': url.url,
+                'frequency': url.frequency,
+                'expected_status': url.expected_status
+            },
+            'statuses': [
+                {
+                    'timestamp': status.timestamp.isoformat(),
+                    'status_code': status.status_code,
+                    'response_time': status.response_time,
+                    'is_up': status.is_up,
+                    'error_message': status.error_message
+                }
+                for status in statuses
+            ]
+        }
+        response = JsonResponse(data)
+        response['Content-Disposition'] = f'attachment; filename="{url.name}_data.json"'
+        return response
+    
+    return HttpResponse('Invalid format', status=400)
+
+# ==================== GROUP MANAGEMENT ====================
+
+@login_required
+def group_list(request):
+    """List all URL groups"""
+    groups = URLGroup.objects.filter(user=request.user)
+    return render(request, 'group_list.html', {'groups': groups})
+
+@login_required
+def group_create(request):
+    """Create a new URL group"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description', '')
+        color = request.POST.get('color', '#3B82F6')
+        
+        URLGroup.objects.create(
+            user=request.user,
+            name=name,
+            description=description,
+            color=color
+        )
+        messages.success(request, f'Group "{name}" created successfully!')
+        return redirect('monitor:group_list')
+    
+    return render(request, 'group_form.html', {'action': 'Create'})
+
+@login_required
+def group_edit(request, group_id):
+    """Edit an existing group"""
+    group = get_object_or_404(URLGroup, id=group_id, user=request.user)
+    
+    if request.method == 'POST':
+        group.name = request.POST.get('name')
+        group.description = request.POST.get('description', '')
+        group.color = request.POST.get('color', '#3B82F6')
+        group.save()
+        messages.success(request, 'Group updated successfully!')
+        return redirect('monitor:group_list')
+    
+    return render(request, 'group_form.html', {'group': group, 'action': 'Edit'})
+
+@login_required
+def group_delete(request, group_id):
+    """Delete a group"""
+    group = get_object_or_404(URLGroup, id=group_id, user=request.user)
+    group_name = group.name
+    group.delete()
+    messages.success(request, f'Group "{group_name}" deleted successfully!')
+    return redirect('monitor:group_list')
+
+# ==================== STATUS PAGE VIEWS ====================
+
+@login_required
+def status_page_list(request):
+    """List all status pages"""
+    pages = StatusPage.objects.filter(user=request.user)
+    return render(request, 'status_page_list.html', {'pages': pages})
+
+@login_required
+def status_page_create(request):
+    """Create a new status page"""
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description', '')
+        slug = request.POST.get('slug')
+        
+        page = StatusPage.objects.create(
+            user=request.user,
+            title=title,
+            description=description,
+            slug=slug
+        )
+        messages.success(request, f'Status page "{title}" created successfully!')
+        return redirect('monitor:status_page_edit', page_id=page.id)
+    
+    return render(request, 'status_page_form.html', {'action': 'Create'})
+
+@login_required
+def status_page_edit(request, page_id):
+    """Edit a status page"""
+    page = get_object_or_404(StatusPage, id=page_id, user=request.user)
+    
+    if request.method == 'POST':
+        page.title = request.POST.get('title')
+        page.description = request.POST.get('description', '')
+        page.is_public = request.POST.get('is_public') == 'on'
+        page.show_response_time = request.POST.get('show_response_time') == 'on'
+        page.show_uptime_percentage = request.POST.get('show_uptime_percentage') == 'on'
+        page.theme_color = request.POST.get('theme_color', '#3B82F6')
+        page.save()
+        messages.success(request, 'Status page updated successfully!')
+        return redirect('monitor:status_page_list')
+    
+    # Get URLs on this page
+    page_urls = StatusPageURL.objects.filter(status_page=page).select_related('url')
+    # Get available URLs not on this page
+    available_urls = MonitoredURL.objects.filter(user=request.user, is_active=True).exclude(
+        id__in=page_urls.values_list('url_id', flat=True)
+    )
+    
+    return render(request, 'status_page_form.html', {
+        'page': page,
+        'page_urls': page_urls,
+        'available_urls': available_urls,
+        'action': 'Edit'
+    })
+
+@login_required
+def status_page_delete(request, page_id):
+    """Delete a status page"""
+    page = get_object_or_404(StatusPage, id=page_id, user=request.user)
+    page_title = page.title
+    page.delete()
+    messages.success(request, f'Status page "{page_title}" deleted successfully!')
+    return redirect('monitor:status_page_list')
+
+@login_required
+def status_page_add_url(request, page_id, url_id):
+    """Add a URL to a status page"""
+    page = get_object_or_404(StatusPage, id=page_id, user=request.user)
+    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    StatusPageURL.objects.get_or_create(
+        status_page=page,
+        url=url,
+        defaults={'display_name': url.name}
+    )
+    messages.success(request, f'"{url.name}" added to status page!')
+    return redirect('monitor:status_page_edit', page_id=page.id)
+
+@login_required
+def status_page_remove_url(request, page_id, url_id):
+    """Remove a URL from a status page"""
+    page = get_object_or_404(StatusPage, id=page_id, user=request.user)
+    StatusPageURL.objects.filter(status_page=page, url_id=url_id).delete()
+    messages.success(request, 'URL removed from status page!')
+    return redirect('monitor:status_page_edit', page_id=page.id)
+
+def public_status_page(request, slug):
+    """Public view of a status page"""
+    page = get_object_or_404(StatusPage, slug=slug)
+    
+    if not page.is_public:
+        raise Http404("Status page not found")
+    
+    # Get URLs on this page with their latest status
+    page_urls = StatusPageURL.objects.filter(status_page=page).select_related('url').order_by('order')
+    
+    url_data = []
+    for page_url in page_urls:
+        url = page_url.url
+        latest_status = url.statuses.first()
+        
+        # Calculate uptime for last 24h
+        day_ago = timezone.now() - timedelta(hours=24)
+        statuses_24h = url.statuses.filter(timestamp__gte=day_ago)
+        uptime_24h = 0
+        if statuses_24h.exists():
+            up_count = statuses_24h.filter(is_up=True).count()
+            uptime_24h = (up_count / statuses_24h.count()) * 100
+        
+        url_data.append({
+            'name': page_url.display_name or url.name,
+            'latest_status': latest_status,
+            'uptime_24h': round(uptime_24h, 2) if uptime_24h else 0,
+            'avg_response': round(statuses_24h.aggregate(avg=Avg('response_time'))['avg'] or 0, 2) if statuses_24h.exists() else 0
+        })
+    
+    return render(request, 'public_status_page.html', {
+        'page': page,
+        'url_data': url_data
     })

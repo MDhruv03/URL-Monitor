@@ -25,13 +25,20 @@ class UserLoginForm(AuthenticationForm):
     )
 
 class URLForm(forms.ModelForm):
+    def __init__(self, user=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if user:
+            from .models import URLGroup
+            self.fields['group'].queryset = URLGroup.objects.filter(user=user)
+    
     class Meta:
         model = MonitoredURL
-        fields = ['name', 'url', 'frequency', 'response_time_threshold', 
+        fields = ['name', 'url', 'group', 'frequency', 'response_time_threshold', 
                  'expected_status', 'check_ssl']
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': 'My Website'}),
             'url': forms.URLInput(attrs={'placeholder': 'https://example.com'}),
+            'group': forms.Select(),
             'frequency': forms.Select(),
             'response_time_threshold': forms.NumberInput(attrs={'append': 'ms'}),
             'expected_status': forms.NumberInput(),

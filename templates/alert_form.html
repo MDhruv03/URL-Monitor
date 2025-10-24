@@ -4,26 +4,77 @@
 {% block title %}{{ action }} Alert{% endblock %}
 
 {% block content %}
-<div class="px-4 sm:px-6 lg:px-8 py-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-gray-800 rounded-lg shadow">
-            <div class="p-6">
-                <h1 class="text-2xl font-semibold text-white">{{ action }} Alert</h1>
-                <p class="mt-2 text-sm text-gray-400">Configure notifications for URL monitoring events</p>
-            </div>
-            <form method="post" class="p-6 space-y-6">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <div class="flex items-center justify-end pt-6 border-t border-gray-700">
-                    <a href="{% url 'monitor:alert_list' %}" class="text-gray-400 hover:text-white mr-4">
-                        Cancel
-                    </a>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-800 sm:w-auto">
-                        {{ action }} Alert
-                    </button>
+<div class="max-w-2xl mx-auto animate-slideUp">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold tracking-tight">{{ action }} Alert</h1>
+        <p class="mt-2 text-white/50 text-sm">Configure notifications for URL monitoring events</p>
+    </div>
+    
+    <!-- Form -->
+    <div class="glass-effect rounded-2xl p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="space-y-2">
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-white/70">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-red-400">*</span>{% endif %}
+                </label>
+                
+                {% if field.field.widget.input_type == 'checkbox' %}
+                <div class="flex items-center">
+                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                           {% if field.value %}checked{% endif %}
+                           class="w-4 h-4 bg-white/5 border-white/10 rounded focus:ring-2 focus:ring-white/20 text-white">
+                    <span class="ml-2 text-sm text-white/60">{{ field.help_text }}</span>
                 </div>
-            </form>
-        </div>
+                {% elif field.field.widget.input_type == 'select' or 'Select' in field.field.widget.__class__.__name__ %}
+                <select name="{{ field.name }}" id="{{ field.id_for_label }}"
+                        {% if field.field.required %}required{% endif %}
+                        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
+                    {{ field }}
+                </select>
+                {% elif field.field.widget.input_type == 'textarea' or 'Textarea' in field.field.widget.__class__.__name__ %}
+                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
+                          rows="3"
+                          {% if field.field.required %}required{% endif %}
+                          class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all resize-none">{{ field.value|default:'' }}</textarea>
+                {% else %}
+                <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                       name="{{ field.name }}" 
+                       id="{{ field.id_for_label }}"
+                       value="{{ field.value|default:'' }}"
+                       {% if field.field.required %}required{% endif %}
+                       class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
+                {% endif %}
+                
+                {% if field.help_text and field.field.widget.input_type != 'checkbox' %}
+                <p class="text-xs text-white/40">{{ field.help_text }}</p>
+                {% endif %}
+                
+                {% if field.errors %}
+                <div class="text-red-400 text-sm">
+                    {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <!-- Actions -->
+            <div class="flex items-center space-x-3 pt-6 border-t border-white/5">
+                <button type="submit" class="flex-1 py-3 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all duration-200 transform hover:scale-[1.02]">
+                    {{ action }} Alert
+                </button>
+                <a href="{% url 'monitor:alert_list' %}" 
+                   class="flex-1 text-center py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-medium transition-all">
+                    Cancel
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
