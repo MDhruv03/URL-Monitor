@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics Test{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="glass-effect rounded-xl p-8">
+        <h1 class="text-3xl font-bold mb-4">Analytics Tracking Test</h1>
+        <p class="text-white/70 mb-6">This page tests the analytics tracking functionality. Open your browser's Network tab to see tracking requests.</p>
+        
+        <div class="space-y-4">
+            <div class="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <h3 class="font-semibold mb-2">✅ Page View Tracked</h3>
+                <p class="text-sm text-white/70">A pageview event is automatically sent when this page loads.</p>
+            </div>
+            
+            <div class="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                <h3 class="font-semibold mb-2">🖱️ Click Tracking</h3>
+                <button id="testClick" class="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-all">
+                    Click Me to Test
+                </button>
+                <p class="text-sm text-white/70 mt-2">Each click is tracked with position and element info.</p>
+            </div>
+            
+            <div class="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <h3 class="font-semibold mb-2">📜 Scroll Tracking</h3>
+                <p class="text-sm text-white/70">Scroll down to test scroll depth tracking.</p>
+            </div>
+            
+            <div class="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                <h3 class="font-semibold mb-2">😤 Rage Click Test</h3>
+                <button id="testRageClick" class="px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-all">
+                    Click Me Rapidly 3+ Times
+                </button>
+                <p class="text-sm text-white/70 mt-2">Rapid clicks (3+ within 1 second) are tracked as rage clicks.</p>
+            </div>
+        </div>
+        
+        <!-- Add some height for scroll testing -->
+        <div class="mt-12 space-y-8">
+            <div class="h-48 glass-effect rounded-xl p-6 flex items-center justify-center">
+                <p class="text-white/50">Scroll content area 1</p>
+            </div>
+            <div class="h-48 glass-effect rounded-xl p-6 flex items-center justify-center">
+                <p class="text-white/50">Scroll content area 2</p>
+            </div>
+            <div class="h-48 glass-effect rounded-xl p-6 flex items-center justify-center">
+                <p class="text-white/50">Scroll content area 3</p>
+            </div>
+            <div class="h-48 glass-effect rounded-xl p-6 flex items-center justify-center">
+                <p class="text-white/50">Scroll content area 4</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Debug Console -->
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Debug Console</h2>
+        <div id="debugConsole" class="bg-black/50 rounded-lg p-4 font-mono text-xs text-green-400 max-h-96 overflow-y-auto">
+            <div>Analytics tracker initialized...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Debug logging
+const debugConsole = document.getElementById('debugConsole');
+const log = (message) => {
+    const line = document.createElement('div');
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    debugConsole.appendChild(line);
+    debugConsole.scrollTop = debugConsole.scrollHeight;
+};
+
+// Check if tracker is loaded
+if (window.analyticsTracker) {
+    log('✅ Analytics tracker is loaded');
+    log(`Visitor ID: ${window.analyticsTracker.visitorId}`);
+    log(`Session ID: ${window.analyticsTracker.sessionId}`);
+    log(`Endpoint: ${window.analyticsTracker.config.endpoint}`);
+} else {
+    log('❌ Analytics tracker not found');
+}
+
+// Test click button
+document.getElementById('testClick')?.addEventListener('click', () => {
+    log('Test click tracked');
+});
+
+// Monitor network requests
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    if (args[0].includes('analytics')) {
+        log(`📤 Sending to: ${args[0]}`);
+        const body = JSON.parse(args[1]?.body || '{}');
+        log(`📦 Events: ${body.events?.length || 0} events`);
+        if (body.events) {
+            body.events.forEach(event => {
+                log(`   - ${event.type}`);
+            });
+        }
+    }
+    return originalFetch.apply(this, args)
+        .then(response => {
+            if (args[0].includes('analytics')) {
+                log(`✅ Response: ${response.status} ${response.statusText}`);
+            }
+            return response;
+        })
+        .catch(error => {
+            if (args[0].includes('analytics')) {
+                log(`❌ Error: ${error.message}`);
+            }
+            throw error;
+        });
+};
+</script>
+{% endblock %}

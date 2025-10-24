@@ -395,6 +395,11 @@ def settings_view(request):
     return render(request, 'settings.html', {'form': form})
 
 @login_required
+def analytics_test(request):
+    """Test page for analytics tracking"""
+    return render(request, 'analytics_test.html')
+
+@login_required
 def traffic_dashboard(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
     metrics = TrafficMetric.objects.filter(url=url).order_by('-timestamp')[:24]

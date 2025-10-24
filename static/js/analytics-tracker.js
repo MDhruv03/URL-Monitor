@@ -33,7 +33,7 @@
     class AnalyticsTracker {
         constructor(config = {}) {
             this.config = {
-                endpoint: config.endpoint || '/api/analytics/track',
+                endpoint: config.endpoint || '/api/analytics/track/',
                 batchSize: config.batchSize || 10,
                 flushInterval: config.flushInterval || 5000, // 5 seconds
                 trackClicks: config.trackClicks !== false,

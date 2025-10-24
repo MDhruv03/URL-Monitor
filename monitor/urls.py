@@ -65,6 +65,7 @@ urlpatterns = [
     
     # New Analytics Dashboard
     path('analytics/', analytics_views.analytics_overview, name='analytics_overview'),
+    path('analytics/test/', views.analytics_test, name='analytics_test'),
     path('analytics/heatmap/', analytics_views.heatmap_view, name='analytics_heatmap'),
     path('analytics/heatmap/<uuid:url_id>/', analytics_views.heatmap_view, name='analytics_heatmap_url'),
     path('analytics/geolocation/', analytics_views.geolocation_view, name='analytics_geolocation'),
