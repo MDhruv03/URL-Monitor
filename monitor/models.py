@@ -200,5 +200,247 @@ class Engagement(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['url', '-timestamp']),
+        ]
+
+
+class PageView(models.Model):
+    """Track individual page views with detailed analytics"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='page_views')
+    session_id = models.CharField(max_length=100, db_index=True)
+    visitor_id = models.CharField(max_length=100, db_index=True)  # Anonymous unique identifier
+    
+    # Page info
+    page_url = models.CharField(max_length=500)
+    page_title = models.CharField(max_length=200, blank=True)
+    referrer = models.CharField(max_length=500, blank=True)
+    
+    # Time tracking
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    time_on_page = models.FloatField(default=0)  # Seconds
+    
+    # Engagement metrics
+    scroll_depth = models.FloatField(default=0)  # Percentage 0-100
+    scroll_events = models.JSONField(default=list)  # [{depth: 25, timestamp: ...}, ...]
+    click_count = models.IntegerField(default=0)
+    
+    # Device & Browser
+    user_agent = models.CharField(max_length=500, blank=True)
+    device_type = models.CharField(max_length=20, default='desktop')  # desktop, mobile, tablet
+    browser = models.CharField(max_length=50, blank=True)
+    os = models.CharField(max_length=50, blank=True)
+    screen_resolution = models.CharField(max_length=20, blank=True)  # 1920x1080
+    
+    # Geolocation
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    country_code = models.CharField(max_length=2, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    region = models.CharField(max_length=100, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    timezone = models.CharField(max_length=50, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['url', '-timestamp']),
+            models.Index(fields=['session_id', '-timestamp']),
+            models.Index(fields=['visitor_id', '-timestamp']),
+            models.Index(fields=['country_code', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.page_url} - {self.timestamp}"
+
+
+class ClickHeatmap(models.Model):
+    """Track click positions for heatmap visualization"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='click_heatmaps')
+    page_url = models.CharField(max_length=500, db_index=True)
+    
+    # Click coordinates
+    x_position = models.IntegerField()  # X coordinate
+    y_position = models.IntegerField()  # Y coordinate
+    viewport_width = models.IntegerField()  # Viewport width at time of click
+    viewport_height = models.IntegerField()  # Viewport height at time of click
+    
+    # Element info
+    element_tag = models.CharField(max_length=50, blank=True)  # button, a, div, etc.
+    element_id = models.CharField(max_length=100, blank=True)
+    element_class = models.CharField(max_length=200, blank=True)
+    element_text = models.CharField(max_length=200, blank=True)
+    
+    # Session info
+    session_id = models.CharField(max_length=100, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    device_type = models.CharField(max_length=20, default='desktop')
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['url', 'page_url', '-timestamp']),
+            models.Index(fields=['session_id']),
+        ]
+    
+    def __str__(self):
+        return f"Click at ({self.x_position}, {self.y_position}) on {self.page_url}"
+
+
+class ScrollHeatmap(models.Model):
+    """Track scroll depth distribution for heatmap visualization"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='scroll_heatmaps')
+    page_url = models.CharField(max_length=500, db_index=True)
+    
+    # Scroll data - JSON with depth ranges and counts
+    # {0-10: 100, 10-20: 95, 20-30: 87, ...}
+    depth_distribution = models.JSONField(default=dict)
+    
+    # Aggregation info
+    date = models.DateField(db_index=True)
+    total_views = models.IntegerField(default=0)
+    average_depth = models.FloatField(default=0)
+    
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['url', 'page_url', 'date']
+        indexes = [
+            models.Index(fields=['url', '-date']),
+        ]
+    
+    def __str__(self):
+        return f"Scroll heatmap for {self.page_url} on {self.date}"
+
+
+class MouseMovement(models.Model):
+    """Track mouse movement patterns (rage clicks, dead clicks, etc.)"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='mouse_movements')
+    session_id = models.CharField(max_length=100, db_index=True)
+    page_url = models.CharField(max_length=500)
+    
+    # Movement type
+    MOVEMENT_TYPES = [
+        ('rage_click', 'Rage Click'),  # Multiple rapid clicks in same area
+        ('dead_click', 'Dead Click'),  # Click with no response
+        ('error_click', 'Error Click'),  # Click that caused an error
+        ('hover', 'Extended Hover'),  # Long hover suggesting confusion
+    ]
+    movement_type = models.CharField(max_length=20, choices=MOVEMENT_TYPES, db_index=True)
+    
+    # Position data
+    x_position = models.IntegerField()
+    y_position = models.IntegerField()
+    
+    # Additional context
+    click_count = models.IntegerField(default=1)  # For rage clicks
+    element_selector = models.CharField(max_length=200, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['url', 'movement_type', '-timestamp']),
+            models.Index(fields=['session_id']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_movement_type_display()} on {self.page_url}"
+
+
+class SessionRecording(models.Model):
+    """Store session replay data"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='session_recordings')
+    session_id = models.CharField(max_length=100, unique=True, db_index=True)
+    visitor_id = models.CharField(max_length=100, db_index=True)
+    
+    # Session info
+    start_time = models.DateTimeField(db_index=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    duration = models.FloatField(default=0)  # Seconds
+    
+    # Events data - stored as compressed JSON
+    events = models.JSONField(default=list)  # Interaction events timeline
+    
+    # Summary metrics
+    pages_visited = models.IntegerField(default=0)
+    total_clicks = models.IntegerField(default=0)
+    total_scrolls = models.IntegerField(default=0)
+    had_errors = models.BooleanField(default=False)
+    had_rage_clicks = models.BooleanField(default=False)
+    
+    # Device info
+    device_type = models.CharField(max_length=20, default='desktop')
+    browser = models.CharField(max_length=50, blank=True)
+    
+    class Meta:
+        ordering = ['-start_time']
+        indexes = [
+            models.Index(fields=['url', '-start_time']),
+            models.Index(fields=['visitor_id', '-start_time']),
+        ]
+    
+    def __str__(self):
+        return f"Session {self.session_id[:8]} - {self.start_time}"
+
+
+class PerformanceMetric(models.Model):
+    """Track page performance metrics"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='performance_metrics')
+    page_url = models.CharField(max_length=500)
+    session_id = models.CharField(max_length=100, db_index=True)
+    
+    # Core Web Vitals
+    first_contentful_paint = models.FloatField(null=True, blank=True)  # FCP in ms
+    largest_contentful_paint = models.FloatField(null=True, blank=True)  # LCP in ms
+    first_input_delay = models.FloatField(null=True, blank=True)  # FID in ms
+    cumulative_layout_shift = models.FloatField(null=True, blank=True)  # CLS score
+    time_to_interactive = models.FloatField(null=True, blank=True)  # TTI in ms
+    
+    # Additional metrics
+    dom_load_time = models.FloatField(null=True, blank=True)  # ms
+    page_load_time = models.FloatField(null=True, blank=True)  # ms
+    resource_load_time = models.FloatField(null=True, blank=True)  # ms
+    
+    # Network
+    connection_type = models.CharField(max_length=20, blank=True)  # 4g, wifi, etc.
+    effective_bandwidth = models.FloatField(null=True, blank=True)  # Mbps
+    
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['url', '-timestamp']),
+            models.Index(fields=['page_url', '-timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"Performance metrics for {self.page_url}"
+
+
+class ConversionFunnel(models.Model):
+    """Track conversion funnel steps"""
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='conversion_funnels')
+    name = models.CharField(max_length=100)
+    steps = models.JSONField()  # [{'name': 'Landing', 'url': '/'}, {'name': 'Signup', 'url': '/signup'}]
+    
+    # Aggregated data
+    date = models.DateField(db_index=True)
+    step_completion = models.JSONField()  # {'0': 1000, '1': 450, '2': 123}
+    conversion_rate = models.FloatField(default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date']
+        unique_together = ['url', 'name', 'date']
+        indexes = [
+            models.Index(fields=['url', '-date']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.date}"
+        indexes = [
+            models.Index(fields=['url', '-timestamp']),
         ]   
 

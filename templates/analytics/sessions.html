@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Session Recordings{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold gradient-text">Session Recordings</h1>
+            <p class="text-white/50 mt-1">User sessions and interaction timelines</p>
+        </div>
+        
+        <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="window.location.href='?days='+this.value">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+        </select>
+    </div>
+
+    <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
+        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
+        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
+        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Geolocation</a>
+        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
+        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
+        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Sessions</a>
+    </div>
+
+    {% if session_details %}
+    <div class="glass-effect rounded-xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold">Session Details</h2>
+            <a href="{% url 'monitor:analytics_sessions' %}?days={{ days }}" class="text-sm text-white/70 hover:text-white">← Back to list</a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-xs text-white/50 mb-1">Session ID</p>
+                <p class="text-sm font-medium text-white truncate">{{ session_details.session_id }}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-xs text-white/50 mb-1">Pages Visited</p>
+                <p class="text-xl font-bold text-white">{{ session_details.pages_visited }}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-xs text-white/50 mb-1">Total Clicks</p>
+                <p class="text-xl font-bold text-white">{{ session_details.total_clicks }}</p>
+            </div>
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-xs text-white/50 mb-1">Had Rage Clicks</p>
+                <p class="text-xl font-bold {% if session_details.had_rage_clicks %}text-red-400{% else %}text-green-400{% endif %}">
+                    {% if session_details.had_rage_clicks %}Yes{% else %}No{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <h3 class="text-lg font-semibold mb-3">Page Views in Session</h3>
+            {% for pageview in session_details.pageviews %}
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-sm font-medium text-white">{{ pageview.page_url }}</p>
+                <div class="flex items-center space-x-4 mt-2 text-xs text-white/50">
+                    <span>{{ pageview.timestamp|date:"H:i:s" }}</span>
+                    <span>·</span>
+                    <span>{{ pageview.time_on_page }}s on page</span>
+                    <span>·</span>
+                    <span>{{ pageview.scroll_depth|floatformat:0 }}% scrolled</span>
+                    <span>·</span>
+                    <span>{{ pageview.click_count }} clicks</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Recent Sessions</h2>
+        <div class="space-y-3">
+            {% for session in sessions %}
+            <a href="?session_id={{ session.session_id }}&days={{ days }}" class="block p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-white truncate">Session {{ session.session_id|slice:":8" }}...</p>
+                        <p class="text-xs text-white/50 mt-1">
+                            {{ session.start_time|date:"M d, Y H:i" }} · 
+                            {{ session.pages_visited }} pages · 
+                            {{ session.total_clicks }} clicks
+                            {% if session.had_rage_clicks %}<span class="text-red-400 ml-2">⚠ Rage clicks</span>{% endif %}
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-white/50 text-center py-8">No session recordings available</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

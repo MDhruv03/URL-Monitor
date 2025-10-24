@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Performance Analytics{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold gradient-text">Performance Analytics</h1>
+            <p class="text-white/50 mt-1">Core Web Vitals and loading performance</p>
+        </div>
+        
+        <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="window.location.href='?days='+this.value">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+        </select>
+    </div>
+
+    <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
+        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
+        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
+        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Geolocation</a>
+        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Performance</a>
+        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
+        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Sessions</a>
+    </div>
+
+    <!-- Core Web Vitals -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-white/70">FCP (First Contentful Paint)</h3>
+                <span class="px-2 py-1 rounded text-xs font-medium {% if scores.fcp == 'good' %}bg-green-500/20 text-green-400{% elif scores.fcp == 'needs_improvement' %}bg-yellow-500/20 text-yellow-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                    {{ scores.fcp|upper }}
+                </span>
+            </div>
+            <p class="text-3xl font-bold text-white">{{ avg_metrics.avg_fcp|floatformat:0 }}ms</p>
+            <p class="text-xs text-white/40 mt-2">Target: &lt;1.8s</p>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-white/70">LCP (Largest Contentful Paint)</h3>
+                <span class="px-2 py-1 rounded text-xs font-medium {% if scores.lcp == 'good' %}bg-green-500/20 text-green-400{% elif scores.lcp == 'needs_improvement' %}bg-yellow-500/20 text-yellow-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                    {{ scores.lcp|upper }}
+                </span>
+            </div>
+            <p class="text-3xl font-bold text-white">{{ avg_metrics.avg_lcp|floatformat:0 }}ms</p>
+            <p class="text-xs text-white/40 mt-2">Target: &lt;2.5s</p>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-white/70">FID (First Input Delay)</h3>
+                <span class="px-2 py-1 rounded text-xs font-medium {% if scores.fid == 'good' %}bg-green-500/20 text-green-400{% elif scores.fid == 'needs_improvement' %}bg-yellow-500/20 text-yellow-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                    {{ scores.fid|upper }}
+                </span>
+            </div>
+            <p class="text-3xl font-bold text-white">{{ avg_metrics.avg_fid|floatformat:0 }}ms</p>
+            <p class="text-xs text-white/40 mt-2">Target: &lt;100ms</p>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-medium text-white/70">CLS (Cumulative Layout Shift)</h3>
+                <span class="px-2 py-1 rounded text-xs font-medium {% if scores.cls == 'good' %}bg-green-500/20 text-green-400{% elif scores.cls == 'needs_improvement' %}bg-yellow-500/20 text-yellow-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                    {{ scores.cls|upper }}
+                </span>
+            </div>
+            <p class="text-3xl font-bold text-white">{{ avg_metrics.avg_cls|floatformat:3 }}</p>
+            <p class="text-xs text-white/40 mt-2">Target: &lt;0.1</p>
+        </div>
+    </div>
+
+    <!-- Loading Times -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-effect rounded-xl p-6">
+            <h3 class="text-sm font-medium text-white/70 mb-2">DOM Load Time</h3>
+            <p class="text-2xl font-bold text-white">{{ avg_metrics.avg_dom_load|floatformat:0 }}ms</p>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <h3 class="text-sm font-medium text-white/70 mb-2">Page Load Time</h3>
+            <p class="text-2xl font-bold text-white">{{ avg_metrics.avg_page_load|floatformat:0 }}ms</p>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <h3 class="text-sm font-medium text-white/70 mb-2">Time to Interactive</h3>
+            <p class="text-2xl font-bold text-white">{{ avg_metrics.avg_tti|floatformat:0 }}ms</p>
+        </div>
+    </div>
+
+    <!-- Performance Chart -->
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Performance Trends</h2>
+        <canvas id="performanceChart" style="max-height: 300px;"></canvas>
+    </div>
+
+    <!-- Performance by Page -->
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Performance by Page</h2>
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+            {% for page in performance_by_page %}
+            <div class="p-4 rounded-lg bg-white/5">
+                <p class="text-sm font-medium text-white truncate">{{ page.page_url }}</p>
+                <div class="grid grid-cols-4 gap-4 mt-3 text-center">
+                    <div>
+                        <p class="text-xs text-white/50">FCP</p>
+                        <p class="text-sm font-bold text-white">{{ page.avg_fcp|floatformat:0 }}ms</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-white/50">LCP</p>
+                        <p class="text-sm font-bold text-white">{{ page.avg_lcp|floatformat:0 }}ms</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-white/50">FID</p>
+                        <p class="text-sm font-bold text-white">{{ page.avg_fid|floatformat:0 }}ms</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-white/50">CLS</p>
+                        <p class="text-sm font-bold text-white">{{ page.avg_cls|floatformat:3 }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+const metricsData = {{ metrics_over_time|safe }};
+const ctx = document.getElementById('performanceChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: metricsData.map(d => new Date(d.date).toLocaleDateString()),
+        datasets: [
+            {
+                label: 'FCP (ms)',
+                data: metricsData.map(d => d.avg_fcp),
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'LCP (ms)',
+                data: metricsData.map(d => d.avg_lcp),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { labels: { color: 'rgba(255, 255, 255, 0.7)' } }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { color: 'rgba(255, 255, 255, 0.5)' },
+                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+            },
+            x: {
+                ticks: { color: 'rgba(255, 255, 255, 0.5)' },
+                grid: { color: 'rgba(255, 255, 255, 0.05)' }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

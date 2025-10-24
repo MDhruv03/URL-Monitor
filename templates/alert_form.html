@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load tailwind_filters %}
+{% load form_tags %}
 
 {% block title %}{{ action }} Alert{% endblock %}
 
@@ -30,24 +30,30 @@
                            class="w-4 h-4 bg-white/5 border-white/10 rounded focus:ring-2 focus:ring-white/20 text-white">
                     <span class="ml-2 text-sm text-white/60">{{ field.help_text }}</span>
                 </div>
-                {% elif field.field.widget.input_type == 'select' or 'Select' in field.field.widget.__class__.__name__ %}
-                <select name="{{ field.name }}" id="{{ field.id_for_label }}"
-                        {% if field.field.required %}required{% endif %}
-                        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
-                    {{ field }}
-                </select>
-                {% elif field.field.widget.input_type == 'textarea' or 'Textarea' in field.field.widget.__class__.__name__ %}
-                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
-                          rows="3"
-                          {% if field.field.required %}required{% endif %}
-                          class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all resize-none">{{ field.value|default:'' }}</textarea>
                 {% else %}
-                <input type="{{ field.field.widget.input_type|default:'text' }}" 
-                       name="{{ field.name }}" 
-                       id="{{ field.id_for_label }}"
-                       value="{{ field.value|default:'' }}"
-                       {% if field.field.required %}required{% endif %}
-                       class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
+                    {% with widget_name=field|widget_type %}
+                    {% if field.field.widget.input_type == 'select' or 'Select' in widget_name %}
+                    <select name="{{ field.name }}" id="{{ field.id_for_label }}"
+                            {% if field.field.required %}required{% endif %}
+                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
+                        {% for value, label in field.field.choices %}
+                            <option value="{{ value }}" {% if field.value == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif 'Textarea' in widget_name %}
+                    <textarea name="{{ field.name }}" id="{{ field.id_for_label }}"
+                              rows="3"
+                              {% if field.field.required %}required{% endif %}
+                              class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all resize-none">{{ field.value|default:'' }}</textarea>
+                    {% else %}
+                    <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                           name="{{ field.name }}" 
+                           id="{{ field.id_for_label }}"
+                           value="{{ field.value|default:'' }}"
+                           {% if field.field.required %}required{% endif %}
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all">
+                    {% endif %}
+                    {% endwith %}
                 {% endif %}
                 
                 {% if field.help_text and field.field.widget.input_type != 'checkbox' %}

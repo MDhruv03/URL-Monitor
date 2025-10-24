@@ -80,6 +80,7 @@
                     <a href="{% url 'monitor:group_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Groups</a>
                     <a href="{% url 'monitor:alert_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Alerts</a>
                     <a href="{% url 'monitor:status_page_list' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Status</a>
+                    <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200">Analytics</a>
                 </div>
                 
                 <!-- User Menu -->
@@ -110,6 +111,7 @@
                 <a href="{% url 'monitor:group_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Groups</a>
                 <a href="{% url 'monitor:alert_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Alerts</a>
                 <a href="{% url 'monitor:status_page_list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Status</a>
+                <a href="{% url 'monitor:analytics_overview' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Analytics</a>
                 <div class="divider my-2"></div>
                 <a href="{% url 'monitor:settings' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Settings</a>
                 <a href="{% url 'monitor:logout' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-white/70 hover:text-white hover:bg-white/5">Logout</a>
@@ -158,6 +160,19 @@
     </footer>
     
     <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/analytics-tracker.js' %}"></script>
+    <script>
+        // Initialize analytics tracking
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof AnalyticsTracker !== 'undefined') {
+                window.analyticsTracker = new AnalyticsTracker({
+                    apiEndpoint: '/api/analytics/track/',
+                    batchSize: 10,
+                    flushInterval: 5000
+                });
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

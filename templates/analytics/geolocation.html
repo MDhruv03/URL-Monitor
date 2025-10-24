@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Geolocation Analytics{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold gradient-text">Geolocation Analytics</h1>
+            <p class="text-white/50 mt-1">Where your visitors are coming from</p>
+        </div>
+        
+        <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="window.location.href='?days='+this.value">
+            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+        </select>
+    </div>
+
+    <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
+        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
+        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
+        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Geolocation</a>
+        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
+        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
+        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Sessions</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-effect rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4">Top Countries</h2>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% for country in country_stats %}
+                <div class="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                    <div>
+                        <p class="text-sm font-medium text-white">{{ country.country }}</p>
+                        <p class="text-xs text-white/50 mt-1">{{ country.unique_visitors }} unique · {{ country.avg_time|floatformat:0 }}s avg</p>
+                    </div>
+                    <span class="text-lg font-bold text-white">{{ country.visits }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-4">Top Cities</h2>
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+                {% for city in city_stats %}
+                <div class="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                    <div>
+                        <p class="text-sm font-medium text-white">{{ city.city }}</p>
+                        <p class="text-xs text-white/50 mt-1">{{ city.country }} · {{ city.unique_visitors }} unique</p>
+                    </div>
+                    <span class="text-lg font-bold text-white">{{ city.visits }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    {% if visitor_locations %}
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Visitor Map</h2>
+        <p class="text-white/50 mb-4">{{ total_locations }} unique locations tracked</p>
+        <div class="bg-black/50 rounded-lg p-8 text-center">
+            <p class="text-white/50">Map visualization requires integration with a mapping library like Leaflet or Google Maps</p>
+            <p class="text-white/30 text-sm mt-2">Data available for {{ visitor_locations|length }} locations</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

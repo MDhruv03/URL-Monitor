@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Click Heatmap{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold gradient-text">Click Heatmap</h1>
+            <p class="text-white/50 mt-1">Visualize where users click on your pages</p>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+            <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/20" onchange="updateTimeRange(this.value)">
+                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
+        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
+        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Heatmaps</a>
+        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Geolocation</a>
+        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
+        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
+        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Sessions</a>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 rounded-lg bg-blue-500/10">
+                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white/50 text-sm">Total Clicks</p>
+                    <p class="text-2xl font-bold text-white">{{ total_clicks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 rounded-lg bg-red-500/10">
+                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white/50 text-sm">Rage Clicks</p>
+                    <p class="text-2xl font-bold text-white">{{ total_rage_clicks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-effect rounded-xl p-6">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 rounded-lg bg-yellow-500/10">
+                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-white/50 text-sm">Dead Clicks</p>
+                    <p class="text-2xl font-bold text-white">{{ total_dead_clicks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Selector -->
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Select Page</h2>
+        <select id="pageSelector" class="w-full glass-effect rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white/20" onchange="updatePage(this.value)">
+            <option value="">All Pages</option>
+            {% for page in pages_with_clicks %}
+            <option value="{{ page.page_url }}" {% if page.page_url == page_url %}selected{% endif %}>
+                {{ page.page_url }} ({{ page.click_count }} clicks)
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Heatmap Visualization -->
+    {% if click_data %}
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Click Heatmap</h2>
+        <div class="relative bg-black/50 rounded-lg overflow-hidden" style="min-height: 600px;">
+            <canvas id="heatmapCanvas" class="w-full h-full"></canvas>
+            <div class="absolute top-4 right-4 glass-effect rounded-lg p-4">
+                <div class="text-sm text-white/70 mb-2">Heat Intensity</div>
+                <div class="w-48 h-6 rounded" style="background: linear-gradient(to right, rgba(59, 130, 246, 0.3), rgba(239, 68, 68, 0.8));"></div>
+                <div class="flex justify-between text-xs text-white/50 mt-1">
+                    <span>Low</span>
+                    <span>High</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Clicked Elements -->
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4">Top Clicked Elements</h2>
+        <div class="space-y-3">
+            {% for click in click_data|slice:":15" %}
+            <div class="flex items-center justify-between p-4 rounded-lg bg-white/5">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-white">
+                        {% if click.element_id %}<span class="text-blue-400">#{{ click.element_id }}</span>{% endif %}
+                        {% if click.element_class %}<span class="text-green-400">.{{ click.element_class|truncatewords:3 }}</span>{% endif %}
+                        <span class="text-white/50">&lt;{{ click.element_tag }}&gt;</span>
+                    </p>
+                    <p class="text-xs text-white/40 mt-1">Position: ({{ click.x_position }}, {{ click.y_position }})</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-white">{{ click.count }}</p>
+                    <p class="text-xs text-white/50">clicks</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="glass-effect rounded-xl p-12 text-center">
+        <svg class="w-16 h-16 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+        </svg>
+        <p class="text-white/50">No click data available for this page</p>
+    </div>
+    {% endif %}
+
+    <!-- Rage Clicks -->
+    {% if rage_click_data %}
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4 text-red-400">Rage Clicks (User Frustration)</h2>
+        <div class="space-y-3">
+            {% for rage in rage_click_data|slice:":10" %}
+            <div class="flex items-center justify-between p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div>
+                    <p class="text-sm text-white">Position: ({{ rage.x_position }}, {{ rage.y_position }})</p>
+                    <p class="text-xs text-white/50 mt-1">Average {{ rage.click_count }} rapid clicks</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-red-400">{{ rage.occurrences }}</p>
+                    <p class="text-xs text-white/50">occurrences</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Dead Clicks -->
+    {% if dead_click_data %}
+    <div class="glass-effect rounded-xl p-6">
+        <h2 class="text-xl font-bold mb-4 text-yellow-400">Dead Clicks (Non-Interactive Elements)</h2>
+        <div class="space-y-3">
+            {% for dead in dead_click_data|slice:":10" %}
+            <div class="flex items-center justify-between p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <div class="flex-1">
+                    <p class="text-sm text-white">{{ dead.element_selector|default:"Unknown element" }}</p>
+                    <p class="text-xs text-white/50 mt-1">Position: ({{ dead.x_position }}, {{ dead.y_position }})</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-lg font-bold text-yellow-400">{{ dead.count }}</p>
+                    <p class="text-xs text-white/50">clicks</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function updateTimeRange(days) {
+    const pageUrl = document.getElementById('pageSelector').value;
+    const params = new URLSearchParams({ days });
+    if (pageUrl) params.append('page_url', pageUrl);
+    window.location.href = '?' + params.toString();
+}
+
+function updatePage(pageUrl) {
+    const days = document.getElementById('timeRange').value;
+    const params = new URLSearchParams({ days });
+    if (pageUrl) params.append('page_url', pageUrl);
+    window.location.href = '?' + params.toString();
+}
+
+// Draw heatmap
+{% if click_data %}
+const canvas = document.getElementById('heatmapCanvas');
+const ctx = canvas.getContext('2d');
+const clickData = {{ click_data|safe }};
+
+// Set canvas size
+canvas.width = 1200;
+canvas.height = 800;
+
+// Find max click count for scaling
+const maxClicks = Math.max(...clickData.map(d => d.count));
+
+// Draw clicks
+clickData.forEach(click => {
+    const intensity = click.count / maxClicks;
+    const size = 20 + (intensity * 30);
+    
+    // Create gradient
+    const gradient = ctx.createRadialGradient(click.x_position, click.y_position, 0, click.x_position, click.y_position, size);
+    gradient.addColorStop(0, `rgba(239, 68, 68, ${intensity * 0.8})`);
+    gradient.addColorStop(0.5, `rgba(59, 130, 246, ${intensity * 0.4})`);
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+    
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(click.x_position, click.y_position, size, 0, Math.PI * 2);
+    ctx.fill();
+});
+{% endif %}
+</script>
+{% endblock %}

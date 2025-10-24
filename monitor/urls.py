@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from . import views
+from . import analytics_api
+from . import analytics_views
 
 app_name = 'monitor'
 
@@ -40,6 +42,7 @@ urlpatterns = [
     # API Endpoints
     path('api/urls/<uuid:url_id>/status/', views.get_url_status, name='get_url_status'),
     path('api/urls/<uuid:url_id>/chart/', views.get_uptime_chart_data, name='get_uptime_chart_data'),
+    path('api/analytics/track/', analytics_api.track_analytics, name='track_analytics'),
     
     # Alerts
     path('alerts/', views.alert_list, name='alert_list'),
@@ -59,6 +62,15 @@ urlpatterns = [
     path('analytics/traffic/<uuid:url_id>/', views.traffic_dashboard, name='traffic_dashboard'),
     path('analytics/flows/<uuid:url_id>/', views.user_flows, name='user_flows'),
     path('analytics/engagement/<uuid:url_id>/', views.engagement_metrics, name='engagement_metrics'),
+    
+    # New Analytics Dashboard
+    path('analytics/', analytics_views.analytics_overview, name='analytics_overview'),
+    path('analytics/heatmap/', analytics_views.heatmap_view, name='analytics_heatmap'),
+    path('analytics/heatmap/<uuid:url_id>/', analytics_views.heatmap_view, name='analytics_heatmap_url'),
+    path('analytics/geolocation/', analytics_views.geolocation_view, name='analytics_geolocation'),
+    path('analytics/performance/', analytics_views.performance_view, name='analytics_performance'),
+    path('analytics/scroll/', analytics_views.scroll_depth_view, name='analytics_scroll'),
+    path('analytics/sessions/', analytics_views.session_recordings_view, name='analytics_sessions'),
     
     # Export
     path('urls/<uuid:url_id>/export/<str:format>/', views.export_url_data, name='export_url_data'),
