@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.0.10] - 2025-10-25
+
+### Fixed
+- **Analytics Error Handling**: Added comprehensive error handling to all analytics views
+  - Wrapped all analytics views with `@handle_analytics_errors` decorator
+  - Graceful fallback when analytics queries fail
+  - Returns empty data instead of 500 errors
+  - Detailed error logging for debugging
+
+### Added
+- Error recovery decorator for analytics views
+- User-friendly error messages in analytics dashboards
+- Comprehensive logging for all analytics operations
+
+### Improved
+- Analytics dashboard stability
+- Better error messages for debugging
+- Prevents 500 errors when analytics data is missing or corrupted
+
 ## [2.0.9] - 2025-10-25
 
 ### Fixed
