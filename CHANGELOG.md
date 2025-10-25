@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.1.2] - 2025-10-25
+
+### 🔥 Critical Fix - Redis Connection Error
+- **Celery Result Backend**: Disabled result backend to prevent Redis connection errors
+  - Changed `CELERY_RESULT_BACKEND` from Redis URL to `None`
+  - Added `CELERY_TASK_IGNORE_RESULT = True` to skip result storage
+  - Fixes "Error 111 connecting to localhost:6379. Connection refused" error
+  - Celery broker still uses Render Redis, only result backend disabled
+  - No more 500 errors when triggering URL checks manually
+
+### 🎨 Major UI Redesign - Sleek Split Screen
+- **Login & Register Pages**: Premium split-screen design with animated logo
+  - **Left Panel**: Animated logo with floating and pulse-glow effects
+    - Grid pattern background with subtle gradients
+    - Large 32x32 white logo square with shield icon
+    - Feature highlights with stats (99.9% uptime, 24/7 monitoring)
+    - Smooth animations (6s float, 4s glow)
+  - **Right Panel**: Clean minimal form design
+    - Simplified inputs with better spacing
+    - Space Grotesk font for modern aesthetic
+    - Slide-in animation on load
+    - Mobile-optimized with responsive logo
+  - **Features**: Black/white minimalistic theme with premium feel
+    - Real-time alerts showcase
+    - Advanced analytics highlight
+    - Multiple integrations display
+
+### 🛠️ Technical Improvements
+- Celery uses only broker (message queue) - more reliable
+- Removed result backend to prevent localhost fallback
+- Better error handling for manual URL checks
+- Improved Celery configuration for Render deployment
+
 ## [2.1.1] - 2025-10-25
 
 ### 🔥 Critical Fixes
