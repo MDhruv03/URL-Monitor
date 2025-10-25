@@ -24,6 +24,9 @@ from . import external_tracking
 app_name = 'monitor'
 
 urlpatterns = [
+     # Health Check
+    path('health/', views.health_check, name='health_check'),
+    
      # Authentication
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),

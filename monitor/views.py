@@ -25,18 +25,68 @@ from django_tables2 import RequestConfig
 from .tables import URLTable, StatusTable, AlertTable, NotificationTable
 import json
 import csv
+import logging
+
+logger = logging.getLogger(__name__)
+
+def health_check(request):
+    """Health check endpoint to verify database connectivity"""
+    try:
+        from django.contrib.auth.models import User
+        from django.db import connection
+        
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        # Test User table exists
+        user_count = User.objects.count()
+        
+        # Test MonitoredURL table exists
+        url_count = MonitoredURL.objects.count()
+        
+        return JsonResponse({
+            'status': 'healthy',
+            'database': 'connected',
+            'tables': {
+                'users': user_count,
+                'monitored_urls': url_count,
+            },
+            'migrations': 'applied'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'unhealthy',
+            'error': str(e),
+            'message': 'Database tables may not be initialized. Run migrations.'
+        }, status=500)
 
 def register(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Registration successful! Welcome to URL Monitor.')
-            # Redirect to URL list instead of dashboard to avoid complex queries on first load
-            return redirect('monitor:url_list')
+        try:
+            logger.info(f"Registration attempt - POST data: {request.POST.keys()}")
+            form = UserRegistrationForm(request.POST)
+            
+            if form.is_valid():
+                logger.info(f"Form is valid, creating user: {form.cleaned_data.get('username')}")
+                user = form.save()
+                logger.info(f"User created successfully: {user.username}")
+                
+                login(request, user)
+                logger.info(f"User logged in: {user.username}")
+                
+                messages.success(request, 'Registration successful! Welcome to URL Monitor.')
+                # Redirect to URL list instead of dashboard to avoid complex queries on first load
+                return redirect('monitor:url_list')
+            else:
+                logger.warning(f"Form validation failed: {form.errors.as_json()}")
+                messages.error(request, 'Please correct the errors below.')
+        except Exception as e:
+            logger.error(f"Registration error: {str(e)}", exc_info=True)
+            messages.error(request, f'Registration failed. Please try again. Error: {str(e)}')
     else:
         form = UserRegistrationForm()
+    
     return render(request, 'register.html', {'form': form})
 
 def user_login(request):
