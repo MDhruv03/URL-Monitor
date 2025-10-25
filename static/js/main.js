@@ -493,13 +493,4 @@ window.addEventListener('load', function() {
             (window.scrollY + window.innerHeight) / document.body.scrollHeight * 100
         );
     });
-    
-    window.addEventListener('beforeunload', function() {
-        navigator.sendBeacon('/track-engagement', JSON.stringify({
-            url: window.location.pathname,
-            duration: (Date.now() - startTime) / 1000,
-            scroll_depth: scrollDepth,
-            interactions: trackClicksCount
-        }));
-    });
 });
