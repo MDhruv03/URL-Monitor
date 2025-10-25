@@ -9,6 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.1.0] - 2025-10-25
+
+### 🎨 Major UI Redesign
+- **Login & Register Pages**: Complete redesign with modern split-screen layout
+  - Beautiful gradient illustration panel with floating animations
+  - Clean white form panel with improved readability
+  - Better mobile responsive design
+  - Enhanced visual hierarchy and spacing
+  - Professional iconography and branding
+
+### ✨ New Features
+- **Per-URL Analytics**: Analytics now filter by specific monitored URLs
+  - Added URL selector dropdown to all analytics views
+  - Analytics overview accepts `url_id` parameter
+  - All analytics views (heatmap, geolocation, performance, scroll, sessions) support per-URL filtering
+  - Added new URL patterns for per-URL analytics routes
+
+### 🔧 Fixed
+- **Celery URL Monitoring**: Completely redesigned task scheduling
+  - Fixed `schedule_checks()` to check URLs based on their frequency setting
+  - Added intelligent check scheduling (respects last check time)
+  - Enhanced logging for all Celery tasks
+  - Better error handling and status reporting
+  - Tasks now execute immediately when scheduled (no countdown delays)
+
+### 📊 Analytics Improvements
+- **Analytics Views**: Added URL filtering to all analytics views
+  - `analytics_overview(url_id=None)` - Filter by specific URL
+  - `heatmap_view(url_id=None)` - Per-URL click heatmaps
+  - `geolocation_view(url_id=None)` - Geographic data by URL
+  - `performance_view(url_id=None)` - Web Vitals per URL
+  - All views include URL dropdown selector
+  - Proper user permission checks (only show user's URLs)
+
+### 🛠️ Technical Improvements
+- Enhanced Celery task logging with structured output
+- Better error messages in analytics views
+- Improved URL routing for analytics endpoints
+- Added URL context to all analytics templates
+
 ## [2.0.10] - 2025-10-25
 
 ### Fixed

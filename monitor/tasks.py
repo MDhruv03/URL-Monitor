@@ -12,13 +12,19 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def check_url_status(url_id):
-    print(f"[CELERY] check_url_status task started with url_id={url_id}")
+    """
+    Checks a single URL's status.
+    Called by schedule_checks() or manually triggered.
+    """
+    logger.info(f"[CELERY WORKER] check_url_status started for url_id={url_id}")
 
     try:
         url = MonitoredURL.objects.get(id=UUID(url_id), is_active=True)
     except MonitoredURL.DoesNotExist:
-        print(f"[DEBUG] URL with id {url_id} not found.")
-        return
+        logger.warning(f"[CELERY WORKER] URL with id {url_id} not found or inactive")
+        return {'error': 'URL not found'}
+    
+    logger.info(f"[CELERY WORKER] Checking {url.name} - {url.url}")
     
     start_time = time.time()
     try:
@@ -33,11 +39,15 @@ def check_url_status(url_id):
         is_up = (status_code == url.expected_status and 
                 response_time <= url.response_time_threshold)
         error_message = None
+        
+        logger.info(f"[CELERY WORKER] {url.name} - Status: {status_code}, Response: {response_time:.0f}ms, Up: {is_up}")
+        
     except requests.exceptions.RequestException as e:
         response_time = 0
         status_code = 0
         is_up = False
         error_message = str(e)
+        logger.error(f"[CELERY WORKER] {url.name} - Error: {error_message}")
     
     # Save the status
     url_status = URLStatus.objects.create(
@@ -48,8 +58,11 @@ def check_url_status(url_id):
         error_message=error_message
     )
     
+    logger.info(f"[CELERY WORKER] URLStatus saved: ID={url_status.id}")
+    
     # Check if we need to send alerts
     if not is_up:
+        logger.info(f"[CELERY WORKER] URL is DOWN, triggering alert")
         send_alert.delay(url_status.id)
     
     return {
@@ -129,9 +142,29 @@ def send_alert(url_status_id):
 
 @shared_task
 def schedule_checks():
+    """
+    Called by Celery Beat every 60 seconds.
+    Checks all active URLs that need to be checked based on their frequency.
+    """
+    logger.info("[CELERY BEAT] Running schedule_checks task")
+    
     urls = MonitoredURL.objects.filter(is_active=True)
+    checked_count = 0
+    
     for url in urls:
-        check_url_status.apply_async(
-            args=[str(url.id)],
-            countdown=url.frequency * 60
-        )
+        # Check if enough time has passed since last check
+        last_status = URLStatus.objects.filter(url=url).order_by('-timestamp').first()
+        
+        if last_status:
+            time_since_check = (timezone.now() - last_status.timestamp).total_seconds() / 60
+            if time_since_check < url.frequency:
+                logger.debug(f"[SKIP] {url.name} - Checked {time_since_check:.1f}min ago, frequency is {url.frequency}min")
+                continue
+        
+        # Time to check this URL
+        logger.info(f"[QUEUE] Checking {url.name} ({url.url})")
+        check_url_status.delay(str(url.id))
+        checked_count += 1
+    
+    logger.info(f"[CELERY BEAT] Queued {checked_count} URL checks")
+    return f"Queued {checked_count} checks"

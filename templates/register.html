@@ -9,48 +9,114 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .glass-effect { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .pattern-bg {
+            background-image: 
+                radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.05) 2%, transparent 0%),
+                radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.05) 2%, transparent 0%);
+            background-size: 100px 100px;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-[#050505] text-white flex items-center justify-center antialiased py-12">
-    <div class="w-full max-w-md px-4">
-        <!-- Logo -->
-        <div class="text-center mb-10 animate-fadeIn">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white mb-6">
-                <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h1 class="text-3xl font-bold tracking-tight">Create your account</h1>
-            <p class="mt-2 text-white/50">Start monitoring your URLs today</p>
+<body class="min-h-screen flex">
+    <!-- Left Side - Illustration -->
+    <div class="hidden lg:flex lg:w-1/2 gradient-bg pattern-bg items-center justify-center relative overflow-hidden">
+        <!-- Background Elements -->
+        <div class="absolute inset-0">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
         </div>
         
-        <!-- Form -->
-        <div class="glass-effect rounded-2xl p-8">
+        <!-- Content -->
+        <div class="relative z-10 max-w-lg px-12 text-center">
+            <div class="animate-float mb-12">
+                <!-- Shield Check Icon -->
+                <div class="inline-flex items-center justify-center w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-xl border border-white/20 shadow-2xl">
+                    <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h2 class="text-4xl font-bold text-white mb-4">
+                Start Monitoring in Seconds
+            </h2>
+            <p class="text-xl text-white/80 leading-relaxed mb-8">
+                Join thousands of developers who trust URL Monitor to keep their websites running smoothly 24/7.
+            </p>
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-6 mt-12">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white mb-1">99.9%</div>
+                    <div class="text-sm text-white/70">Uptime</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white mb-1">24/7</div>
+                    <div class="text-sm text-white/70">Monitoring</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white mb-1">&lt;1s</div>
+                    <div class="text-sm text-white/70">Response</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side - Register Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+        <div class="w-full max-w-md">
+            <!-- Logo for Mobile -->
+            <div class="lg:hidden text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-bg mb-4">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">URL Monitor</h1>
+            </div>
+            
+            <!-- Welcome Text -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Create your account</h2>
+                <p class="text-gray-600">Start monitoring your URLs for free</p>
+            </div>
+            
+            <!-- Form -->
             <form method="post" class="space-y-5">
                 {% csrf_token %}
                 
                 {% if form.errors %}
-                    <div class="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl">
-                        <div class="flex items-start space-x-2">
-                            <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <div class="text-sm space-y-1">
-                                {% for field, errors in form.errors.items %}
-                                    {% for error in errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
+                    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-start space-x-3">
+                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="text-sm space-y-1">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <p>{{ error }}</p>
                                 {% endfor %}
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 {% endif %}
                 
                 <div class="space-y-2">
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70">Username</label>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Username
+                    </label>
                     <input type="text" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
                            id="{{ form.username.id_for_label }}" 
                            name="{{ form.username.html_name }}"
                            placeholder="Choose a username"
@@ -59,54 +125,61 @@
                 </div>
                 
                 <div class="space-y-2">
-                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-white/70">Email</label>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Email Address
+                    </label>
                     <input type="email" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
                            id="{{ form.email.id_for_label }}" 
                            name="{{ form.email.html_name }}"
-                           placeholder="your@email.com"
+                           placeholder="you@example.com"
                            required>
                 </div>
                 
                 <div class="space-y-2">
-                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white/70">Password</label>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Password
+                    </label>
                     <input type="password" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
                            id="{{ form.password1.id_for_label }}" 
                            name="{{ form.password1.html_name }}"
                            placeholder="Create a strong password"
                            required>
-                    <p class="text-xs text-white/40">At least 8 characters with letters and numbers</p>
+                    <p class="text-xs text-gray-500">Must be at least 8 characters</p>
                 </div>
                 
                 <div class="space-y-2">
-                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white/70">Confirm Password</label>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Confirm Password
+                    </label>
                     <input type="password" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all" 
                            id="{{ form.password2.id_for_label }}" 
                            name="{{ form.password2.html_name }}"
                            placeholder="Confirm your password"
                            required>
                 </div>
                 
-                <button type="submit" class="w-full py-3 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all duration-200 transform hover:scale-[1.02] mt-6">
+                <button type="submit" class="w-full py-3 gradient-bg text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200 transform hover:scale-[1.02] shadow-lg shadow-purple-500/30 mt-6">
                     Create Account
                 </button>
             </form>
             
-            <div class="mt-8 pt-6 border-t border-white/5 text-center">
-                <p class="text-sm text-white/50">
+            <!-- Divider -->
+            <div class="mt-8 pt-8 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-600">
                     Already have an account? 
-                    <a href="{% url 'monitor:login' %}" class="font-medium text-white hover:text-white/80 transition-colors">
+                    <a href="{% url 'monitor:login' %}" class="font-semibold text-purple-600 hover:text-purple-700 transition-colors">
                         Sign in
                     </a>
                 </p>
             </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="mt-8 text-center text-xs text-white/30">
-            © {% now "Y" %} URL Monitor
+            
+            <!-- Footer -->
+            <div class="mt-8 text-center text-xs text-gray-400">
+                © {% now "Y" %} URL Monitor. All rights reserved.
+            </div>
         </div>
     </div>
 </body>

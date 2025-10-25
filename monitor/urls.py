@@ -74,13 +74,18 @@ urlpatterns = [
     
     # New Analytics Dashboard
     path('analytics/', analytics_views.analytics_overview, name='analytics_overview'),
+    path('analytics/<uuid:url_id>/', analytics_views.analytics_overview, name='analytics_overview_url'),
     path('analytics/test/', views.analytics_test, name='analytics_test'),
     path('analytics/heatmap/', analytics_views.heatmap_view, name='analytics_heatmap'),
     path('analytics/heatmap/<uuid:url_id>/', analytics_views.heatmap_view, name='analytics_heatmap_url'),
     path('analytics/geolocation/', analytics_views.geolocation_view, name='analytics_geolocation'),
+    path('analytics/geolocation/<uuid:url_id>/', analytics_views.geolocation_view, name='analytics_geolocation_url'),
     path('analytics/performance/', analytics_views.performance_view, name='analytics_performance'),
+    path('analytics/performance/<uuid:url_id>/', analytics_views.performance_view, name='analytics_performance_url'),
     path('analytics/scroll/', analytics_views.scroll_depth_view, name='analytics_scroll'),
+    path('analytics/scroll/<uuid:url_id>/', analytics_views.scroll_depth_view, name='analytics_scroll_url'),
     path('analytics/sessions/', analytics_views.session_recordings_view, name='analytics_sessions'),
+    path('analytics/sessions/<uuid:url_id>/', analytics_views.session_recordings_view, name='analytics_sessions_url'),
     
     # Export
     path('urls/<uuid:url_id>/export/<str:format>/', views.export_url_data, name='export_url_data'),

@@ -46,34 +46,44 @@ def handle_analytics_errors(view_func):
 
 
 @login_required
-def analytics_overview(request):
+def analytics_overview(request, url_id=None):
     """Main analytics dashboard showing overview of all metrics"""
     try:
+        # Get the monitored URL if url_id is provided
+        monitored_url = None
+        if url_id:
+            monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+        
+        # Get all monitored URLs for the dropdown
+        all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+        
         # Get date range (last 7 days by default)
         days = int(request.GET.get('days', 7))
         start_date = timezone.now() - timedelta(days=days)
         
         logger.info(f"Loading analytics overview for {days} days starting from {start_date}")
         
+        # Base query - filter by URL if specified
+        pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+        if monitored_url:
+            pageview_query = pageview_query.filter(url=monitored_url)
+        
         # Get total metrics
-        total_pageviews = PageView.objects.filter(timestamp__gte=start_date).count()
-        unique_visitors = PageView.objects.filter(timestamp__gte=start_date).values('visitor_id').distinct().count()
-        avg_time_on_page = PageView.objects.filter(
-            timestamp__gte=start_date,
+        total_pageviews = pageview_query.count()
+        unique_visitors = pageview_query.values('visitor_id').distinct().count()
+        avg_time_on_page = pageview_query.filter(
             time_on_page__gt=0
         ).aggregate(Avg('time_on_page'))['time_on_page__avg'] or 0
         
         # Get bounce rate (sessions with only 1 pageview)
-        total_sessions = PageView.objects.filter(timestamp__gte=start_date).values('session_id').distinct().count()
-        single_page_sessions = PageView.objects.filter(timestamp__gte=start_date).values('session_id').annotate(
+        total_sessions = pageview_query.values('session_id').distinct().count()
+        single_page_sessions = pageview_query.values('session_id').annotate(
             page_count=Count('id')
         ).filter(page_count=1).count()
         bounce_rate = (single_page_sessions / total_sessions * 100) if total_sessions > 0 else 0
         
         # Get pageviews by day
-        pageviews_by_day = PageView.objects.filter(
-            timestamp__gte=start_date
-        ).annotate(
+        pageviews_by_day = pageview_query.annotate(
             date=TruncDate('timestamp')
         ).values('date').annotate(
             count=Count('id'),
@@ -81,9 +91,7 @@ def analytics_overview(request):
         ).order_by('date')
         
         # Get top pages
-        top_pages = PageView.objects.filter(
-            timestamp__gte=start_date
-        ).values('page_url').annotate(
+        top_pages = pageview_query.values('page_url').annotate(
             views=Count('id'),
             unique_views=Count('visitor_id', distinct=True),
             avg_time=Avg('time_on_page'),
@@ -91,28 +99,25 @@ def analytics_overview(request):
         ).order_by('-views')[:10]
         
         # Get device breakdown
-        device_breakdown = PageView.objects.filter(
-            timestamp__gte=start_date
-        ).values('device_type').annotate(
+        device_breakdown = pageview_query.values('device_type').annotate(
             count=Count('id')
         ).order_by('-count')
         
         # Get browser breakdown
-        browser_breakdown = PageView.objects.filter(
-            timestamp__gte=start_date
-        ).values('browser').annotate(
+        browser_breakdown = pageview_query.values('browser').annotate(
             count=Count('id')
         ).order_by('-count')[:5]
         
         # Get top countries
-        top_countries = PageView.objects.filter(
-            timestamp__gte=start_date,
+        top_countries = pageview_query.filter(
             country__isnull=False
         ).exclude(country='').values('country').annotate(
             count=Count('id')
         ).order_by('-count')[:10]
         
         context = {
+            'monitored_url': monitored_url,
+            'all_monitored_urls': all_monitored_urls,
             'days': days,
             'total_pageviews': total_pageviews,
             'unique_visitors': unique_visitors,
@@ -133,6 +138,8 @@ def analytics_overview(request):
         
         # Return empty context to prevent 500 error
         context = {
+            'monitored_url': monitored_url if url_id else None,
+            'all_monitored_urls': MonitoredURL.objects.filter(user=request.user, is_active=True),
             'days': 7,
             'total_pageviews': 0,
             'unique_visitors': 0,
@@ -227,14 +234,26 @@ def heatmap_view(request, url_id=None):
 
 @login_required
 @handle_analytics_errors
-def geolocation_view(request):
+def geolocation_view(request, url_id=None):
     """Geographic distribution of visitors"""
+    # Get the monitored URL if url_id is provided
+    monitored_url = None
+    if url_id:
+        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    # Get all monitored URLs for the dropdown
+    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+    
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
+    # Base query - filter by URL if specified
+    pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+    if monitored_url:
+        pageview_query = pageview_query.filter(url=monitored_url)
+    
     # Get visitor locations
-    visitor_locations = PageView.objects.filter(
-        timestamp__gte=start_date,
+    visitor_locations = pageview_query.filter(
         latitude__isnull=False,
         longitude__isnull=False
     ).values(
@@ -244,8 +263,7 @@ def geolocation_view(request):
     ).order_by('-visits')
     
     # Get country statistics
-    country_stats = PageView.objects.filter(
-        timestamp__gte=start_date,
+    country_stats = pageview_query.filter(
         country__isnull=False
     ).exclude(country='').values('country', 'country_code').annotate(
         visits=Count('id'),
@@ -255,8 +273,7 @@ def geolocation_view(request):
     ).order_by('-visits')[:20]
     
     # Get city statistics
-    city_stats = PageView.objects.filter(
-        timestamp__gte=start_date,
+    city_stats = pageview_query.filter(
         city__isnull=False
     ).exclude(city='').values('city', 'country').annotate(
         visits=Count('id'),
@@ -264,6 +281,8 @@ def geolocation_view(request):
     ).order_by('-visits')[:15]
     
     context = {
+        'monitored_url': monitored_url,
+        'all_monitored_urls': all_monitored_urls,
         'days': days,
         'visitor_locations': list(visitor_locations),
         'country_stats': list(country_stats),
@@ -276,15 +295,26 @@ def geolocation_view(request):
 
 @login_required
 @handle_analytics_errors
-def performance_view(request):
+def performance_view(request, url_id=None):
     """Performance metrics dashboard showing Web Vitals"""
+    # Get the monitored URL if url_id is provided
+    monitored_url = None
+    if url_id:
+        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    # Get all monitored URLs for the dropdown
+    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+    
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
+    # Base query - filter by URL if specified
+    perf_query = PerformanceMetric.objects.filter(timestamp__gte=start_date)
+    if monitored_url:
+        perf_query = perf_query.filter(url=monitored_url)
+    
     # Get average metrics
-    avg_metrics = PerformanceMetric.objects.filter(
-        timestamp__gte=start_date
-    ).aggregate(
+    avg_metrics = perf_query.aggregate(
         avg_fcp=Avg('first_contentful_paint'),
         avg_lcp=Avg('largest_contentful_paint'),
         avg_fid=Avg('first_input_delay'),
@@ -295,9 +325,7 @@ def performance_view(request):
     )
     
     # Get metrics over time
-    metrics_over_time = PerformanceMetric.objects.filter(
-        timestamp__gte=start_date
-    ).annotate(
+    metrics_over_time = perf_query.annotate(
         date=TruncDate('timestamp')
     ).values('date').annotate(
         avg_fcp=Avg('first_contentful_paint'),
@@ -308,9 +336,7 @@ def performance_view(request):
     ).order_by('date')
     
     # Get performance by page
-    performance_by_page = PerformanceMetric.objects.filter(
-        timestamp__gte=start_date
-    ).values('page_url').annotate(
+    performance_by_page = perf_query.values('page_url').annotate(
         samples=Count('id'),
         avg_fcp=Avg('first_contentful_paint'),
         avg_lcp=Avg('largest_contentful_paint'),
@@ -319,10 +345,12 @@ def performance_view(request):
         avg_page_load=Avg('page_load_time')
     ).order_by('-samples')[:10]
     
-    # Get performance by device
-    performance_by_device = PageView.objects.filter(
-        timestamp__gte=start_date
-    ).values('device_type').annotate(
+    # Get performance by device (from PageView for device info)
+    pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+    if monitored_url:
+        pageview_query = pageview_query.filter(url=monitored_url)
+    
+    performance_by_device = pageview_query.values('device_type').annotate(
         count=Count('id')
     ).order_by('-count')
     
@@ -337,6 +365,8 @@ def performance_view(request):
         return scores
     
     context = {
+        'monitored_url': monitored_url,
+        'all_monitored_urls': all_monitored_urls,
         'days': days,
         'avg_metrics': avg_metrics,
         'scores': calculate_score(avg_metrics),
