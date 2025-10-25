@@ -160,19 +160,6 @@
     </footer>
     
     <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/analytics-tracker.js' %}"></script>
-    <script>
-        // Initialize analytics tracking
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof AnalyticsTracker !== 'undefined') {
-                window.analyticsTracker = new AnalyticsTracker({
-                    apiEndpoint: '/api/analytics/track/',
-                    batchSize: 10,
-                    flushInterval: 5000
-                });
-            }
-        });
-    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
