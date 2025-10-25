@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.1.1] - 2025-10-25
+
+### 🔥 Critical Fixes
+- **Redis Session Error**: Fixed login 500 error caused by incorrect cache backend configuration
+  - Changed from `django.core.cache.backends.redis.RedisCache` to `django_redis.cache.RedisCache`
+  - Switched sessions to database backend (more reliable on Render free tier)
+  - Fixed "AbstractConnection.__init__() got an unexpected keyword argument 'CLIENT_CLASS'" error
+  - Login/register now works without Redis session dependency
+
+### 🎨 UI Redesign - Elegant Black Theme
+- **Login & Register Pages**: Reverted to elegant black/white aesthetic
+  - Clean black background with white glass-morphism cards
+  - Subtle backdrop blur effects
+  - White gradient logo with shadow effects
+  - Smooth hover animations and shine effects
+  - Better contrast and readability
+  - Professional minimalist design
+  - Removed colorful gradients in favor of monochrome elegance
+
+### 🛠️ Technical Improvements
+- Database sessions for better reliability on free tier
+- Proper django-redis backend configuration
+- Removed conflicting cache options
+- Better session management
+
 ## [2.1.0] - 2025-10-25
 
 ### 🎨 Major UI Redesign
