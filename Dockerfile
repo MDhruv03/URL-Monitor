@@ -33,7 +33,9 @@ RUN python manage.py collectstatic --noinput || true
 # Create logs directory
 RUN mkdir -p /app/logs
 
+# Expose port (will be dynamically assigned by Render)
 EXPOSE 8000
 
-# Use Gunicorn as the production server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "url_monitor.wsgi:application"]
+# Use Gunicorn as the production server with dynamic port binding
+# Render provides $PORT environment variable at runtime
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 120 url_monitor.wsgi:application

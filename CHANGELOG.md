@@ -5,6 +5,24 @@ All notable changes to the URL Monitor project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-10-25
+
+### Fixed
+- **Critical: Render Deployment Port Binding** - Fixed Dockerfile to use dynamic `$PORT` environment variable instead of hardcoded port 8000
+  - Updated CMD to use `${PORT:-8000}` syntax (binds to $PORT if available, defaults to 8000 locally)
+  - Prevents repeated service restarts on Render free tier
+  - Ensures stable deployment without port conflicts
+
+### Added
+- **RENDER_TROUBLESHOOTING.md** - Comprehensive guide for debugging Render deployments
+  - Port binding issues and solutions
+  - Deployment checklist
+  - Common issues and fixes (static files, database, CORS, Celery)
+  - Performance optimization tips for free tier
+  - Manual deployment steps (Blueprint vs Manual)
+  - Health monitoring and uptime strategies
+  - Rollback procedures
+
 ## [2.0.0] - 2025-10-25
 
 ### Added
