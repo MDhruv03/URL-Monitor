@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.0.9] - 2025-10-25
+
+### Fixed
+- **Redis Connection Stability**: Enhanced Celery and Redis connection handling
+  - Added connection retry logic (max 10 retries)
+  - Configured connection pooling (50 max connections)
+  - Added `CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP`
+  - Enabled `CELERY_TASK_ACKS_LATE` for better reliability
+  - Fixed "Connection to Redis lost: Retry" errors on Render free tier
+
+### Added
+- **Redis Caching**: Configured Django to use Redis for caching
+  - Added `django-redis==5.4.0` to requirements
+  - Configured connection pooling for cache backend
+  - Set 5-second socket timeout with retry logic
+  - Production sessions now use Redis for better performance
+
+### Improved
+- Better handling of Redis service restarts on free tier
+- Reduced connection errors during cold starts
+- More resilient task queue processing
+
 ## [2.0.8] - 2025-10-25
 
 ### Fixed

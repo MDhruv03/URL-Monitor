@@ -8,6 +8,7 @@ crispy-tailwind==1.0.3
 # Task Queue
 celery==5.5.3
 redis==6.2.0
+django-redis==5.4.0
 
 # HTTP Requests
 requests==2.32.5
