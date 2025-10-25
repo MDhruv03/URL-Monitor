@@ -1,0 +1,126 @@
+# Render Blueprint for URL Monitor
+# Automatically provisions all required services
+
+services:
+  # Main Web Application
+  - type: web
+    name: url-monitor
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "chmod +x build.sh && ./build.sh"
+    startCommand: "gunicorn url_monitor.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: url-monitor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+
+  # Celery Worker (Background Tasks)
+  - type: worker
+    name: url-monitor-worker
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A url_monitor worker --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: url-monitor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+
+  # Celery Beat (Scheduled Tasks)
+  - type: worker
+    name: url-monitor-beat
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A url_monitor beat --loglevel=info"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: url-monitor-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: url-monitor-redis
+          property: connectionString
+
+  # Redis Instance
+  - type: redis
+    name: url-monitor-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+# PostgreSQL Database
+databases:
+  - name: url-monitor-db
+    databaseName: url_monitor
+    user: url_monitor_user
+    region: oregon
+    plan: free
+

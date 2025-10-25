@@ -1,27 +1,33 @@
 # Django Framework
 Django==5.2.1
-django-tables2==2.7.0
-django-filters==24.3
+django-tables2==2.7.5
+django-filter==24.3
 django-crispy-forms==2.3
 crispy-tailwind==1.0.3
 
 # Task Queue
-celery==5.4.0
-redis==5.2.0
+celery==5.5.3
+redis==6.2.0
 
 # HTTP Requests
-requests==2.32.3
+requests==2.32.5
 
 # Database (Production)
-# psycopg2-binary==2.9.9  # Uncomment for PostgreSQL
+psycopg2-binary==2.9.10
+dj-database-url==2.3.0
 
-# Email & Notifications
-# python-telegram-bot==20.7  # Uncomment if using Telegram alerts
+# User Agent Parsing
+user-agents==2.2.0
+ua-parser==1.0.1
 
 # Utilities
 python-decouple==3.8
 
-# Development Dependencies (optional)
-# pytest==8.3.3
-# pytest-django==4.9.0
-# coverage==7.6.4
+# ASGI Server
+uvicorn==0.34.2
+
+# Static Files for Production
+whitenoise==6.8.2
+
+# Web Server
+gunicorn==23.0.0

@@ -179,6 +179,141 @@
         </div>
     </div>
 
+    <!-- Analytics Tracking -->
+    <div class="glass-effect rounded-2xl p-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Analytics Tracking</h3>
+                    <p class="text-white/50 text-sm mt-1">Track visitors to this URL with advanced analytics</p>
+                </div>
+            </div>
+            <a href="{% url 'monitor:analytics_overview' %}?url={{ url.id }}" class="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors text-sm font-medium">
+                View Analytics Dashboard
+            </a>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Features List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <span class="text-white/70 text-sm font-medium">Page Views</span>
+                    </div>
+                    <p class="text-white/40 text-xs">Track visitor traffic</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                        </svg>
+                        <span class="text-white/70 text-sm font-medium">Click Heatmaps</span>
+                    </div>
+                    <p class="text-white/40 text-xs">See where users click</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                        </svg>
+                        <span class="text-white/70 text-sm font-medium">Scroll Depth</span>
+                    </div>
+                    <p class="text-white/40 text-xs">Measure engagement</p>
+                </div>
+                <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                        <span class="text-white/70 text-sm font-medium">Performance</span>
+                    </div>
+                    <p class="text-white/40 text-xs">Load times & metrics</p>
+                </div>
+            </div>
+
+            <!-- Tracking Code -->
+            <div class="bg-gradient-to-br from-purple-500/10 to-blue-500/10 rounded-xl p-6 border border-purple-500/20">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-white font-semibold flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                        <span>Embed This Code</span>
+                    </h4>
+                    <button onclick="copyTrackingCode()" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors text-sm font-medium flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span id="copyButtonText">Copy Code</span>
+                    </button>
+                </div>
+                
+                <div class="bg-gray-900/50 rounded-lg p-4 font-mono text-sm border border-white/10">
+                    <pre id="trackingCode" class="text-green-400 whitespace-pre-wrap break-all overflow-x-auto">&lt;!-- URL Monitor Analytics --&gt;
+&lt;script src="{{ request.scheme }}://{{ request.get_host }}{% url 'monitor:tracking_script' url.id %}"&gt;&lt;/script&gt;</pre>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex items-start space-x-2 text-sm">
+                        <svg class="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-white/70">
+                            <strong class="text-white">Installation:</strong> Add this code to the <code class="px-2 py-0.5 bg-white/10 rounded text-purple-400">&lt;head&gt;</code> section of your website, right before the closing <code class="px-2 py-0.5 bg-white/10 rounded text-purple-400">&lt;/head&gt;</code> tag.
+                        </p>
+                    </div>
+                    <div class="flex items-start space-x-2 text-sm">
+                        <svg class="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-white/70">
+                            <strong class="text-white">Data Collection:</strong> Once installed, the script will automatically track page views, clicks, scroll behavior, and performance metrics for this URL.
+                        </p>
+                    </div>
+                    <div class="flex items-start space-x-2 text-sm">
+                        <svg class="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <p class="text-white/70">
+                            <strong class="text-white">Privacy:</strong> The script respects user privacy and only collects anonymous usage data. No personal information is stored.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Example Installation -->
+                <details class="mt-4">
+                    <summary class="text-white/70 text-sm font-medium cursor-pointer hover:text-white transition-colors">
+                        Show Example HTML Installation
+                    </summary>
+                    <div class="mt-3 bg-gray-900/70 rounded-lg p-4 font-mono text-xs border border-white/10">
+                        <pre class="text-white/70 whitespace-pre-wrap"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Your Website&lt;/title&gt;
+    
+    <span class="text-yellow-400">&lt;!-- URL Monitor Analytics --&gt;</span>
+    <span class="text-green-400">&lt;script src="{{ request.scheme }}://{{ request.get_host }}{% url 'monitor:tracking_script' url.id %}"&gt;&lt;/script&gt;</span>
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- Your website content --&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
 
     <!-- Uptime Chart -->
     <div class="glass-effect rounded-2xl p-8">
@@ -340,5 +475,25 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 });
+
+// Copy tracking code to clipboard
+function copyTrackingCode() {
+    const codeElement = document.getElementById('trackingCode');
+    const buttonText = document.getElementById('copyButtonText');
+    const code = codeElement.textContent;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        buttonText.textContent = 'Copied!';
+        setTimeout(() => {
+            buttonText.textContent = 'Copy Code';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        buttonText.textContent = 'Failed to copy';
+        setTimeout(() => {
+            buttonText.textContent = 'Copy Code';
+        }, 2000);
+    });
+}
 </script>
 {% endblock %}

@@ -19,6 +19,7 @@ from django.urls import path
 from . import views
 from . import analytics_api
 from . import analytics_views
+from . import external_tracking
 
 app_name = 'monitor'
 
@@ -43,6 +44,11 @@ urlpatterns = [
     path('api/urls/<uuid:url_id>/status/', views.get_url_status, name='get_url_status'),
     path('api/urls/<uuid:url_id>/chart/', views.get_uptime_chart_data, name='get_uptime_chart_data'),
     path('api/analytics/track/', analytics_api.track_analytics, name='track_analytics'),
+    
+    # External URL Tracking (for monitored websites)
+    path('tracking/<uuid:url_id>/script.js', external_tracking.get_tracking_script, name='tracking_script'),
+    path('api/track/<uuid:url_id>/', external_tracking.track_external_url, name='track_external_url'),
+    path('tracking/<uuid:url_id>/instructions/', external_tracking.get_tracking_instructions, name='tracking_instructions'),
     
     # Alerts
     path('alerts/', views.alert_list, name='alert_list'),

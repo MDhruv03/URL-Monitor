@@ -37,6 +37,7 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
+staticfiles/
 
 # Environment variables
 .env
@@ -61,6 +62,8 @@ yarn-error.log*
 .coverage
 .pytest_cache/
 htmlcov/
+.tox/
+*.cover
 
 # Celery
 celerybeat-schedule
@@ -70,3 +73,22 @@ celerybeat.pid
 *.bak
 *.tmp
 .cache/
+
+# Temporary files
+test_external_tracking.html
+requirements_full.txt
+check_db.py
+
+# OS specific
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+
+# Backup files
+*.backup
+*.old
+
+# Development
+.python-version
+*.sqlite3-journal

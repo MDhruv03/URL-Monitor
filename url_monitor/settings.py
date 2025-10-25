@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,12 +82,27 @@ WSGI_APPLICATION = 'url_monitor.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Use DATABASE_URL environment variable if available (for production)
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    # Production database (PostgreSQL from Render)
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Development database (SQLite)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -124,6 +141,17 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# WhiteNoise configuration for serving static files in production
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
