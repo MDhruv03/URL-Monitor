@@ -144,11 +144,11 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Cache Configuration (Redis) - Use Upstash Redis (HTTP-based, more reliable)
-UPSTASH_REDIS_URL = config('UPSTASH_REDIS_URL', default='https://central-monkey-22361.upstash.io')
-UPSTASH_REDIS_TOKEN = config('UPSTASH_REDIS_TOKEN', default='AVdZAAIncDI1MmVhYzQzZTE5MTE0YTc1YWE0YWZhZThiZjkzY2I0ZHAyMjIzNjE')
+UPSTASH_REDIS_URL = config('UPSTASH_REDIS_URL', default='')
+UPSTASH_REDIS_TOKEN = config('UPSTASH_REDIS_TOKEN', default='')
 
-# Legacy Redis URL for backward compatibility
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+# Legacy Redis URL for backward compatibility (optional)
+REDIS_URL = config('REDIS_URL', default='')
 
 # Django cache using traditional Redis (for caching only)
 CACHES = {
