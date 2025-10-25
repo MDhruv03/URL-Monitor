@@ -5,6 +5,31 @@ All notable changes to the URL Monitor project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2025-10-25
+
+### Fixed
+- **Critical: 500 Error After Registration** - Added error handling to dashboard view
+  - Wrapped dashboard queries in try-except blocks to handle database initialization gracefully
+  - Changed registration redirect from dashboard to url_list to avoid complex queries on first load
+  - Added helpful error messages when database tables are still initializing
+  - Prevents 500 errors when accessing dashboard before migrations complete
+
+### Changed
+- **Registration Flow** - Now redirects to URL list instead of dashboard after registration
+  - Simpler page load, faster response
+  - Better user experience for new accounts
+  - Avoids heavy dashboard queries on fresh accounts
+
+### Added
+- **Enhanced Build Logging** - build.sh now shows detailed migration status
+  - Migration check before running
+  - Clear success/failure messages
+  - Helps debug deployment issues on Render free tier
+- **Render Free Tier Documentation** - Created comprehensive guides
+  - `docs/RENDER_FREE_TIER_500_FIX.md` - Quick fix for 500 errors
+  - `docs/FIX_500_ERROR.md` - Detailed troubleshooting
+  - `docs/RENDER_ENVIRONMENT_SETUP.md` - Step-by-step environment setup
+
 ## [2.0.1] - 2025-10-25
 
 ### Fixed

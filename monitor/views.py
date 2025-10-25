@@ -32,8 +32,9 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Registration successful!')
-            return redirect('monitor:dashboard')
+            messages.success(request, 'Registration successful! Welcome to URL Monitor.')
+            # Redirect to URL list instead of dashboard to avoid complex queries on first load
+            return redirect('monitor:url_list')
     else:
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
@@ -66,37 +67,52 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
-    # Get user's URLs
-    urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
-    
-    # Calculate stats
-    stats = {
-        'total_urls': urls.count(),
-        'up_urls': 0,
-        'down_urls': 0,
-        'avg_response_time': 0,
-    }
-    
-    if urls.exists():
-        # Get latest status for each URL
-        latest_statuses = []
-        for url in urls:
-            latest = url.statuses.first()
-            if latest:
-                latest_statuses.append(latest)
-                if latest.is_up:
-                    stats['up_urls'] += 1
-                else:
-                    stats['down_urls'] += 1
+    try:
+        # Get user's URLs
+        urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
         
-        # Calculate average response time
-        if latest_statuses:
-            stats['avg_response_time'] = sum(
-                s.response_time for s in latest_statuses if s.response_time > 0
-            ) / len(latest_statuses)
-    
-    # Get recent notifications
-    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+        # Calculate stats
+        stats = {
+            'total_urls': urls.count(),
+            'up_urls': 0,
+            'down_urls': 0,
+            'avg_response_time': 0,
+        }
+        
+        if urls.exists():
+            # Get latest status for each URL
+            latest_statuses = []
+            for url in urls:
+                latest = url.statuses.first()
+                if latest:
+                    latest_statuses.append(latest)
+                    if latest.is_up:
+                        stats['up_urls'] += 1
+                    else:
+                        stats['down_urls'] += 1
+            
+            # Calculate average response time
+            if latest_statuses:
+                stats['avg_response_time'] = sum(
+                    s.response_time for s in latest_statuses if s.response_time > 0
+                ) / len(latest_statuses)
+        
+        # Get recent notifications
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+    except Exception as e:
+        # If any database error occurs, show empty dashboard
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Dashboard error: {e}")
+        messages.error(request, 'Some dashboard data could not be loaded. Database might be initializing.')
+        stats = {
+            'total_urls': 0,
+            'up_urls': 0,
+            'down_urls': 0,
+            'avg_response_time': 0,
+        }
+        urls = MonitoredURL.objects.none()
+        notifications = Notification.objects.none()
     
     # Get uptime stats for the last 7 days
     uptime_data = []
@@ -104,58 +120,64 @@ def dashboard(request):
     chart_uptime = []
     chart_response_times = []
     
-    for url in urls:
-        statuses = url.statuses.filter(
-            timestamp__gte=timezone.now() - timedelta(days=7)
-        ).order_by('timestamp')
-        
-        if statuses.exists():
-            up_count = statuses.filter(is_up=True).count()
-            uptime_percent = (up_count / statuses.count()) * 100
-            avg_response = statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
+    try:
+        for url in urls:
+            statuses = url.statuses.filter(
+                timestamp__gte=timezone.now() - timedelta(days=7)
+            ).order_by('timestamp')
             
-            uptime_data.append({
-                'url': url,
-                'uptime': round(uptime_percent, 2),
-                'avg_response': round(avg_response, 2) if avg_response else 0
-            })
-    
-    # Prepare chart data for the last 7 days
-    if urls.exists():
-        # Get daily aggregated data for charts
-        from datetime import date
-        today = timezone.now().date()
-        
-        for i in range(6, -1, -1):  # Last 7 days
-            day = today - timedelta(days=i)
-            day_start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
-            day_end = day_start + timedelta(days=1)
-            
-            # Get statuses for this day across all URLs
-            day_statuses = URLStatus.objects.filter(
-                url__user=request.user,
-                url__is_active=True,
-                timestamp__gte=day_start,
-                timestamp__lt=day_end
-            )
-            
-            if day_statuses.exists():
-                # Calculate uptime percentage for this day
-                up_count = day_statuses.filter(is_up=True).count()
-                total_count = day_statuses.count()
-                uptime_pct = round((up_count / total_count) * 100, 2) if total_count > 0 else 0
+            if statuses.exists():
+                up_count = statuses.filter(is_up=True).count()
+                uptime_percent = (up_count / statuses.count()) * 100
+                avg_response = statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
                 
-                # Calculate average response time for this day
-                avg_response = day_statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
-                avg_response = round(avg_response, 2) if avg_response else 0
+                uptime_data.append({
+                    'url': url,
+                    'uptime': round(uptime_percent, 2),
+                    'avg_response': round(avg_response, 2) if avg_response else 0
+                })
+        
+        # Prepare chart data for the last 7 days
+        if urls.exists():
+            # Get daily aggregated data for charts
+            from datetime import date
+            today = timezone.now().date()
+            
+            for i in range(6, -1, -1):  # Last 7 days
+                day = today - timedelta(days=i)
+                day_start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
+                day_end = day_start + timedelta(days=1)
                 
-                chart_labels.append(day.strftime('%b %d'))
-                chart_uptime.append(uptime_pct)
-                chart_response_times.append(avg_response)
-            else:
-                chart_labels.append(day.strftime('%b %d'))
-                chart_uptime.append(0)
-                chart_response_times.append(0)
+                # Get statuses for this day across all URLs
+                day_statuses = URLStatus.objects.filter(
+                    url__user=request.user,
+                    url__is_active=True,
+                    timestamp__gte=day_start,
+                    timestamp__lt=day_end
+                )
+                
+                if day_statuses.exists():
+                    # Calculate uptime percentage for this day
+                    up_count = day_statuses.filter(is_up=True).count()
+                    total_count = day_statuses.count()
+                    uptime_pct = round((up_count / total_count) * 100, 2) if total_count > 0 else 0
+                    
+                    # Calculate average response time for this day
+                    avg_response = day_statuses.aggregate(avg=Avg('response_time'))['avg'] or 0
+                    avg_response = round(avg_response, 2) if avg_response else 0
+                    
+                    chart_labels.append(day.strftime('%b %d'))
+                    chart_uptime.append(uptime_pct)
+                    chart_response_times.append(avg_response)
+                else:
+                    chart_labels.append(day.strftime('%b %d'))
+                    chart_uptime.append(0)
+                    chart_response_times.append(0)
+    except Exception as e:
+        # If chart data fails, just use empty arrays
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Dashboard chart data error: {e}")
     
     # Convert to JSON for JavaScript
     urls_json = json.dumps(chart_labels)
