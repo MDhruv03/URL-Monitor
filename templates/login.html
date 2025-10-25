@@ -69,17 +69,17 @@
     </style>
 </head>
 <body class="min-h-screen bg-black text-white">
-    <div class="min-h-screen flex items-center justify-center px-6 py-12">
-        <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-16 items-center">
+    <div class="min-h-screen flex items-center justify-center px-6 py-8">
+        <div class="w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center">
             <!-- Left Side - Login Form -->
             <div class="animate-fadeIn">
-                <div class="mb-8">
-                    <h1 class="text-4xl font-bold tracking-tight mb-3">Welcome Back</h1>
-                    <p class="text-white/50">Sign in to continue monitoring</p>
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold tracking-tight mb-2">Welcome Back</h1>
+                    <p class="text-white/50 text-sm">Sign in to continue monitoring</p>
                 </div>
                 
-                <div class="glass-effect rounded-2xl p-8">
-                    <form method="post" class="space-y-6">
+                <div class="glass-effect rounded-2xl p-6">
+                    <form method="post" class="space-y-4">
                         {% csrf_token %}
                         
                         {% if form.errors %}
@@ -88,12 +88,12 @@
                             </div>
                         {% endif %}
                         
-                        <div class="space-y-2">
-                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70">
+                        <div class="space-y-1.5">
+                            <label for="{{ form.username.id_for_label }}" class="block text-xs font-medium text-white/70">
                                 Username
                             </label>
                             <input type="text" 
-                                   class="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
+                                   class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
                                    id="{{ form.username.id_for_label }}" 
                                    name="{{ form.username.html_name }}"
                                    placeholder="Enter your username"
@@ -101,25 +101,25 @@
                                    autofocus>
                         </div>
                         
-                        <div class="space-y-2">
-                            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white/70">
+                        <div class="space-y-1.5">
+                            <label for="{{ form.password.id_for_label }}" class="block text-xs font-medium text-white/70">
                                 Password
                             </label>
                             <input type="password" 
-                                   class="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
+                                   class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
                                    id="{{ form.password.id_for_label }}" 
                                    name="{{ form.password.html_name }}"
                                    placeholder="Enter your password"
                                    required>
                         </div>
                         
-                        <button type="submit" class="w-full py-3.5 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all hover-lift mt-8">
+                        <button type="submit" class="w-full py-2.5 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all hover-lift mt-6">
                             Sign In
                         </button>
                     </form>
                     
-                    <div class="mt-6 pt-6 border-t border-white/10 text-center">
-                        <p class="text-white/50 text-sm">
+                    <div class="mt-4 pt-4 border-t border-white/10 text-center">
+                        <p class="text-white/50 text-xs">
                             Don't have an account? 
                             <a href="{% url 'monitor:register' %}" class="text-white hover:text-white/80 font-medium transition-colors">
                                 Sign up
@@ -128,7 +128,7 @@
                     </div>
                 </div>
                 
-                <div class="mt-8 text-center text-white/30 text-xs">
+                <div class="mt-6 text-center text-white/30 text-xs">
                     © {% now "Y" %} URL Monitor
                 </div>
             </div>
@@ -136,13 +136,13 @@
             <!-- Right Side - Animated Logo -->
             <div class="hidden lg:flex items-center justify-center relative">
                 <!-- Pulse rings -->
-                <div class="absolute w-96 h-96 border-2 border-white/10 rounded-full animate-pulse-ring"></div>
-                <div class="absolute w-80 h-80 border-2 border-white/5 rounded-full animate-pulse-ring" style="animation-delay: 0.5s;"></div>
+                <div class="absolute w-80 h-80 border-2 border-white/10 rounded-full animate-pulse-ring"></div>
+                <div class="absolute w-64 h-64 border-2 border-white/5 rounded-full animate-pulse-ring" style="animation-delay: 0.5s;"></div>
                 
                 <!-- Main Logo Container -->
                 <div class="relative z-10 animate-float">
                     <!-- URL Monitor Icon -->
-                    <svg class="w-64 h-64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-52 h-52" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <!-- Shield/Monitor background -->
                         <path d="M100 20 L160 40 L160 100 C160 140 100 170 100 170 C100 170 40 140 40 100 L40 40 Z" 
                               fill="rgba(255,255,255,0.05)" 
@@ -198,9 +198,9 @@
                     </svg>
                     
                     <!-- Text below logo -->
-                    <div class="mt-8 text-center">
-                        <h2 class="text-2xl font-bold mb-2">Real-time Monitoring</h2>
-                        <p class="text-white/50 text-sm max-w-xs mx-auto">
+                    <div class="mt-6 text-center">
+                        <h2 class="text-xl font-bold mb-1.5">Real-time Monitoring</h2>
+                        <p class="text-white/50 text-xs max-w-xs mx-auto">
                             Track uptime, performance, and availability 24/7
                         </p>
                     </div>
