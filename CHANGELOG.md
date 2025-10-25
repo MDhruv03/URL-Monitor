@@ -9,7 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
-## [2.0.4] - 2025-10-25
+## [2.0.6] - 2025-10-25
+
+### Fixed
+- **Critical Build Script Fix**: Simplified migration retry logic in build.sh
+  - Changed from `migrate --check` (which was failing silently) to direct `migrate --noinput` with retries
+  - Migrations now retry up to 30 times with 3-second intervals
+  - Shows clear progress: "Migration attempt X/30..."
+  - Better error messages showing actual migration output
+  - Prevents build from completing without running migrations
+
+### Technical Details
+- Previous version used `migrate --check` which would fail if tables don't exist
+- New version runs `migrate --noinput` directly and retries on failure
+- Each retry waits 3 seconds for database to become ready
+- Build fails explicitly if all 30 attempts fail
+- Output is no longer suppressed (2>&1 instead of 2>/dev/null)
+
+## [2.0.5] - 2025-10-25
 
 ### Fixed
 - **Critical Database Initialization Fix**: Enhanced build.sh to properly wait for database and ensure migrations complete

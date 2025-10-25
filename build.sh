@@ -18,32 +18,30 @@ pip install -r requirements.txt
 echo "→ Collecting static files..."
 python manage.py collectstatic --no-input
 
-# Wait for database to be ready (Render free tier)
-echo "→ Waiting for database connection..."
+# Run migrations (with retry logic)
+echo "→ Running database migrations..."
 max_attempts=30
 attempt=0
+
 while [ $attempt -lt $max_attempts ]; do
-    if python manage.py migrate --check 2>/dev/null; then
-        echo "✅ Database is ready!"
+    attempt=$((attempt + 1))
+    echo "⏳ Migration attempt $attempt/$max_attempts..."
+    
+    if python manage.py migrate --noinput 2>&1; then
+        echo "✅ Migrations completed successfully!"
         break
     else
-        attempt=$((attempt + 1))
-        echo "⏳ Waiting for database... (attempt $attempt/$max_attempts)"
-        sleep 2
+        if [ $attempt -lt $max_attempts ]; then
+            echo "⚠️  Migration attempt $attempt failed, retrying in 3 seconds..."
+            sleep 3
+        else
+            echo "❌ All migration attempts failed after $max_attempts tries"
+            echo "Database may not be ready or there's a configuration issue."
+            echo "Check DATABASE_URL is set correctly."
+            exit 1
+        fi
     fi
 done
-
-if [ $attempt -eq $max_attempts ]; then
-    echo "❌ Database connection timeout after $max_attempts attempts"
-    echo "This usually means the PostgreSQL service isn't ready yet."
-    echo "The web service will start, but migrations won't be applied."
-    echo "Please trigger a manual redeploy after the database is ready."
-    exit 1
-fi
-
-# Run migrations
-echo "→ Running database migrations..."
-python manage.py migrate --noinput
 
 # Verify migrations were applied
 echo "→ Verifying migrations..."
