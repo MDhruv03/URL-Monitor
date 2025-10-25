@@ -16,18 +16,43 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
+        /* Animated URL Monitor Logo */
+        @keyframes pulse-ring {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: scale(1.1);
+                opacity: 0.3;
+            }
+        }
+        
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        @keyframes dash {
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; }
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-pulse-ring {
+            animation: pulse-ring 3s ease-in-out infinite;
         }
         
         .animate-float {
-            animation: float 3s ease-in-out infinite;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .animate-dash {
+            animation: dash 2s ease-in-out infinite;
         }
         
         .animate-fadeIn {
@@ -43,73 +68,144 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-black text-white flex items-center justify-center px-4">
-    <div class="w-full max-w-md animate-fadeIn">
-        <!-- Logo -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-6 animate-float">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight mb-2">Welcome Back</h1>
-            <p class="text-white/50 text-sm">Sign in to continue</p>
-        </div>
-        
-        <!-- Login Form -->
-        <div class="glass-effect rounded-2xl p-8">
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
+<body class="min-h-screen bg-black text-white">
+    <div class="min-h-screen flex items-center justify-center px-6 py-12">
+        <div class="w-full max-w-6xl grid lg:grid-cols-2 gap-16 items-center">
+            <!-- Left Side - Login Form -->
+            <div class="animate-fadeIn">
+                <div class="mb-8">
+                    <h1 class="text-4xl font-bold tracking-tight mb-3">Welcome Back</h1>
+                    <p class="text-white/50">Sign in to continue monitoring</p>
+                </div>
                 
-                {% if form.errors %}
-                    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
-                        Invalid username or password
+                <div class="glass-effect rounded-2xl p-8">
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm">
+                                Invalid username or password
+                            </div>
+                        {% endif %}
+                        
+                        <div class="space-y-2">
+                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70">
+                                Username
+                            </label>
+                            <input type="text" 
+                                   class="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
+                                   id="{{ form.username.id_for_label }}" 
+                                   name="{{ form.username.html_name }}"
+                                   placeholder="Enter your username"
+                                   required
+                                   autofocus>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white/70">
+                                Password
+                            </label>
+                            <input type="password" 
+                                   class="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
+                                   id="{{ form.password.id_for_label }}" 
+                                   name="{{ form.password.html_name }}"
+                                   placeholder="Enter your password"
+                                   required>
+                        </div>
+                        
+                        <button type="submit" class="w-full py-3.5 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all hover-lift mt-8">
+                            Sign In
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                        <p class="text-white/50 text-sm">
+                            Don't have an account? 
+                            <a href="{% url 'monitor:register' %}" class="text-white hover:text-white/80 font-medium transition-colors">
+                                Sign up
+                            </a>
+                        </p>
                     </div>
-                {% endif %}
-                
-                <div class="space-y-2">
-                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70">
-                        Username
-                    </label>
-                    <input type="text" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
-                           id="{{ form.username.id_for_label }}" 
-                           name="{{ form.username.html_name }}"
-                           placeholder="Enter username"
-                           required
-                           autofocus>
                 </div>
                 
-                <div class="space-y-2">
-                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white/70">
-                        Password
-                    </label>
-                    <input type="password" 
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-transparent transition-all" 
-                           id="{{ form.password.id_for_label }}" 
-                           name="{{ form.password.html_name }}"
-                           placeholder="Enter password"
-                           required>
+                <div class="mt-8 text-center text-white/30 text-xs">
+                    © {% now "Y" %} URL Monitor
                 </div>
-                
-                <button type="submit" class="w-full py-3 bg-white text-black rounded-xl font-semibold hover:bg-white/90 transition-all hover-lift mt-6">
-                    Sign In
-                </button>
-            </form>
-            
-            <div class="mt-6 pt-6 border-t border-white/10 text-center">
-                <p class="text-white/50 text-sm">
-                    Don't have an account? 
-                    <a href="{% url 'monitor:register' %}" class="text-white hover:text-white/80 font-medium transition-colors">
-                        Sign up
-                    </a>
-                </p>
             </div>
-        </div>
-        
-        <div class="mt-8 text-center text-white/30 text-xs">
-            © {% now "Y" %} URL Monitor
+            
+            <!-- Right Side - Animated Logo -->
+            <div class="hidden lg:flex items-center justify-center relative">
+                <!-- Pulse rings -->
+                <div class="absolute w-96 h-96 border-2 border-white/10 rounded-full animate-pulse-ring"></div>
+                <div class="absolute w-80 h-80 border-2 border-white/5 rounded-full animate-pulse-ring" style="animation-delay: 0.5s;"></div>
+                
+                <!-- Main Logo Container -->
+                <div class="relative z-10 animate-float">
+                    <!-- URL Monitor Icon -->
+                    <svg class="w-64 h-64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Shield/Monitor background -->
+                        <path d="M100 20 L160 40 L160 100 C160 140 100 170 100 170 C100 170 40 140 40 100 L40 40 Z" 
+                              fill="rgba(255,255,255,0.05)" 
+                              stroke="rgba(255,255,255,0.2)" 
+                              stroke-width="2"/>
+                        
+                        <!-- URL/Link Symbol -->
+                        <g class="animate-float" style="animation-delay: 0.3s;">
+                            <!-- Chain link left -->
+                            <circle cx="75" cy="90" r="15" 
+                                    fill="none" 
+                                    stroke="white" 
+                                    stroke-width="3"
+                                    opacity="0.8"/>
+                            <circle cx="125" cy="90" r="15" 
+                                    fill="none" 
+                                    stroke="white" 
+                                    stroke-width="3"
+                                    opacity="0.8"/>
+                            <!-- Connecting line -->
+                            <line x1="90" y1="90" x2="110" y2="90" 
+                                  stroke="white" 
+                                  stroke-width="3" 
+                                  opacity="0.8"
+                                  stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- Status indicator dots -->
+                        <circle cx="100" cy="130" r="4" fill="#10b981" opacity="0.8">
+                            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="115" cy="130" r="4" fill="#10b981" opacity="0.8">
+                            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="85" cy="130" r="4" fill="#10b981" opacity="0.8">
+                            <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Animated connection lines -->
+                        <path d="M50 60 Q60 80 75 90" 
+                              stroke="rgba(255,255,255,0.2)" 
+                              stroke-width="1.5" 
+                              fill="none"
+                              stroke-dasharray="5,5"
+                              class="animate-dash"/>
+                        <path d="M150 60 Q140 80 125 90" 
+                              stroke="rgba(255,255,255,0.2)" 
+                              stroke-width="1.5" 
+                              fill="none"
+                              stroke-dasharray="5,5"
+                              class="animate-dash"
+                              style="animation-delay: 0.5s;"/>
+                    </svg>
+                    
+                    <!-- Text below logo -->
+                    <div class="mt-8 text-center">
+                        <h2 class="text-2xl font-bold mb-2">Real-time Monitoring</h2>
+                        <p class="text-white/50 text-sm max-w-xs mx-auto">
+                            Track uptime, performance, and availability 24/7
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>
