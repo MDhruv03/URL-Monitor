@@ -143,6 +143,26 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+# Use simple static file storage in development, manifest storage in production
+if DEBUG:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        },
+    }
+
 # Cache Configuration (Redis) - Use Upstash Redis (HTTP-based, more reliable)
 UPSTASH_REDIS_URL = config('UPSTASH_REDIS_URL', default='')
 UPSTASH_REDIS_TOKEN = config('UPSTASH_REDIS_TOKEN', default='')
