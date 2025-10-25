@@ -5,7 +5,26 @@ All notable changes to the URL Monitor project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.2] - 2025-10-25
+# Changelog
+
+All notable changes to the URL Monitor project will be documented in this file.
+
+## [2.0.4] - 2025-10-25
+
+### Fixed
+- **Critical Database Initialization Fix**: Enhanced build.sh to properly wait for database and ensure migrations complete
+  - Added database connection retry logic (30 attempts, 2-second intervals)
+  - Build now fails explicitly if database isn't ready (prevents deploying without tables)
+  - Added migration verification step with `showmigrations`
+  - Prevents "no such table: auth_user" error on first deployment
+
+### Technical Details
+- Build script now waits up to 60 seconds for PostgreSQL to be ready
+- Exits with error code 1 if database connection fails (triggers proper error in Render)
+- Added verbose logging for each retry attempt
+- Shows all applied migrations after successful migrate
+
+## [2.0.3] - 2025-10-25
 
 ### Fixed
 - **Critical: 500 Error After Registration** - Added error handling to dashboard view
