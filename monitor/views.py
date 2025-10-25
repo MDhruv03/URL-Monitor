@@ -29,22 +29,54 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+@csrf_exempt
 def health_check(request):
     """Health check endpoint to verify database connectivity"""
     try:
         from django.contrib.auth.models import User
         from django.db import connection
+        import traceback
         
-        # Test database connection
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
+        logger.info("Health check called")
+        
+        # Test basic database connection
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+            logger.info("Database connection: OK")
+        except Exception as db_error:
+            logger.error(f"Database connection failed: {str(db_error)}", exc_info=True)
+            return JsonResponse({
+                'status': 'unhealthy',
+                'error': f'Database connection failed: {str(db_error)}',
+                'message': 'Cannot connect to database. Check DATABASE_URL.'
+            }, status=500)
         
         # Test User table exists
-        user_count = User.objects.count()
+        try:
+            user_count = User.objects.count()
+            logger.info(f"User table check: OK ({user_count} users)")
+        except Exception as user_error:
+            logger.error(f"User table check failed: {str(user_error)}", exc_info=True)
+            return JsonResponse({
+                'status': 'unhealthy',
+                'error': f'User table error: {str(user_error)}',
+                'message': 'Database tables not initialized. Migrations needed.'
+            }, status=500)
         
         # Test MonitoredURL table exists
-        url_count = MonitoredURL.objects.count()
+        try:
+            url_count = MonitoredURL.objects.count()
+            logger.info(f"MonitoredURL table check: OK ({url_count} URLs)")
+        except Exception as url_error:
+            logger.error(f"MonitoredURL table check failed: {str(url_error)}", exc_info=True)
+            return JsonResponse({
+                'status': 'unhealthy',
+                'error': f'MonitoredURL table error: {str(url_error)}',
+                'message': 'Application tables not initialized. Migrations needed.'
+            }, status=500)
         
+        logger.info("Health check: ALL PASSED")
         return JsonResponse({
             'status': 'healthy',
             'database': 'connected',
@@ -55,10 +87,11 @@ def health_check(request):
             'migrations': 'applied'
         })
     except Exception as e:
+        logger.error(f"Health check unexpected error: {str(e)}", exc_info=True)
         return JsonResponse({
             'status': 'unhealthy',
-            'error': str(e),
-            'message': 'Database tables may not be initialized. Run migrations.'
+            'error': f'Unexpected error: {str(e)}',
+            'message': 'Health check failed with unexpected error.'
         }, status=500)
 
 def register(request):
