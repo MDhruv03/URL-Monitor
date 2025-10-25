@@ -27,6 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
 
@@ -36,6 +39,5 @@ RUN mkdir -p /app/logs
 # Expose port (will be dynamically assigned by Render)
 EXPOSE 8000
 
-# Use Gunicorn as the production server with dynamic port binding
-# Render provides $PORT environment variable at runtime
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 120 url_monitor.wsgi:application
+# Use startup script to run migrations and start server
+CMD ["./start.sh"]

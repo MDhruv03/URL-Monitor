@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.0.7] - 2025-10-25
+
+### Fixed
+- **Ultimate Migration Fix**: Moved migrations to container startup (Dockerfile CMD)
+  - Created `start.sh` startup script that runs BEFORE Gunicorn starts
+  - Migrations now run every time the container starts (not just during build)
+  - Added database connection retry logic (30 attempts, 2-second intervals)
+  - Shows detailed migration progress in container logs
+  - Gunicorn only starts AFTER migrations complete successfully
+
+### Why This Works Better
+- **Build-time migrations** run during image build (before DATABASE_URL might be available)
+- **Runtime migrations** run when container starts (DATABASE_URL is definitely available)
+- Container won't accept traffic until migrations are done
+- Every redeploy ensures database is up-to-date
+
+### Technical Details
+- `start.sh`: New startup script with migration logic
+- Dockerfile: Changed CMD to run `./start.sh` instead of direct Gunicorn
+- Startup sequence: Wait for DB → Run migrations → Show applied migrations → Start Gunicorn
+- Gunicorn logs to stdout/stderr for Render visibility
+
 ## [2.0.6] - 2025-10-25
 
 ### Fixed
