@@ -205,7 +205,7 @@ class Engagement(models.Model):
 
 class PageView(models.Model):
     """Track individual page views with detailed analytics"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='page_views')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='page_views', null=True, blank=True)
     session_id = models.CharField(max_length=100, db_index=True)
     visitor_id = models.CharField(max_length=100, db_index=True)  # Anonymous unique identifier
     
@@ -255,7 +255,7 @@ class PageView(models.Model):
 
 class ClickHeatmap(models.Model):
     """Track click positions for heatmap visualization"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='click_heatmaps')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='click_heatmaps', null=True, blank=True)
     page_url = models.CharField(max_length=500, db_index=True)
     
     # Click coordinates
@@ -288,7 +288,7 @@ class ClickHeatmap(models.Model):
 
 class ScrollHeatmap(models.Model):
     """Track scroll depth distribution for heatmap visualization"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='scroll_heatmaps')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='scroll_heatmaps', null=True, blank=True)
     page_url = models.CharField(max_length=500, db_index=True)
     
     # Scroll data - JSON with depth ranges and counts
@@ -313,7 +313,7 @@ class ScrollHeatmap(models.Model):
 
 class MouseMovement(models.Model):
     """Track mouse movement patterns (rage clicks, dead clicks, etc.)"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='mouse_movements')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='mouse_movements', null=True, blank=True)
     session_id = models.CharField(max_length=100, db_index=True)
     page_url = models.CharField(max_length=500)
     
@@ -348,7 +348,7 @@ class MouseMovement(models.Model):
 
 class SessionRecording(models.Model):
     """Store session replay data"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='session_recordings')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='session_recordings', null=True, blank=True)
     session_id = models.CharField(max_length=100, unique=True, db_index=True)
     visitor_id = models.CharField(max_length=100, db_index=True)
     
@@ -384,7 +384,7 @@ class SessionRecording(models.Model):
 
 class PerformanceMetric(models.Model):
     """Track page performance metrics"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='performance_metrics')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='performance_metrics', null=True, blank=True)
     page_url = models.CharField(max_length=500)
     session_id = models.CharField(max_length=100, db_index=True)
     
@@ -419,7 +419,7 @@ class PerformanceMetric(models.Model):
 
 class ConversionFunnel(models.Model):
     """Track conversion funnel steps"""
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='conversion_funnels')
+    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE, related_name='conversion_funnels', null=True, blank=True)
     name = models.CharField(max_length=100)
     steps = models.JSONField()  # [{'name': 'Landing', 'url': '/'}, {'name': 'Signup', 'url': '/signup'}]
     

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.0.8] - 2025-10-25
+
+### Fixed
+- **Analytics Foreign Key Fix**: Made `url_id` nullable in all analytics models
+  - PageView, ClickHeatmap, ScrollHeatmap, MouseMovement models now allow NULL url_id
+  - PerformanceMetric, SessionRecording, ConversionFunnel models now allow NULL url_id
+  - Fixes "null value in column 'url_id' violates not-null constraint" errors
+  - Allows tracking analytics for URL Monitor application pages (not just monitored URLs)
+
+### Why This Was Needed
+- Analytics system tracks two types of pages:
+  1. **Monitored external websites** (have url_id reference)
+  2. **URL Monitor app pages** (/urls/, /register/, etc. - no url_id reference)
+- Previous schema required url_id, causing all app page tracking to fail
+- Now analytics works for both monitored URLs and internal app pages
+
+### Migration
+- Created migration 0006: Make url field nullable with `null=True, blank=True`
+- Existing data preserved, new entries can have NULL url_id
+
 ## [2.0.7] - 2025-10-25
 
 ### Fixed
