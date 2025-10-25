@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All notable changes to the URL Monitor project will be documented in this file.
 
+## [2.2.0] - 2025-10-25
+
+### 🚀 Major Infrastructure Upgrade - Upstash Redis
+- **Switched to Upstash Redis**: HTTP-based Redis for better reliability
+  - Added `upstash-redis==0.15.0` to requirements
+  - Configured `UPSTASH_REDIS_URL` and `UPSTASH_REDIS_TOKEN` in settings
+  - More reliable than traditional TCP Redis on serverless platforms
+  - No more "Connection refused" errors on Render free tier
+  - HTTP REST API for Redis operations
+  - Better connection handling with automatic retries
+
+### 🔧 Configuration Changes
+- **Environment Variables**: New Upstash Redis configuration
+  - `UPSTASH_REDIS_URL`: HTTP URL for Upstash Redis (default: https://central-monkey-22361.upstash.io)
+  - `UPSTASH_REDIS_TOKEN`: Authentication token for Upstash
+  - Legacy `REDIS_URL` still supported for backward compatibility
+  - Celery broker can use either traditional Redis or Upstash
+
+### 🛠️ Technical Improvements
+- HTTP-based Redis eliminates TCP connection issues
+- Better suited for serverless/container environments
+- Automatic connection retry and failover
+- No localhost fallback issues
+- Improved reliability for Celery task queue
+
+### 📦 Dependencies
+- Added: `upstash-redis==0.15.0`
+- Kept: `redis==6.2.0` and `django-redis==5.4.0` for cache backend
+- All existing packages maintained for compatibility
+
 ## [2.1.2] - 2025-10-25
 
 ### 🔥 Critical Fix - Redis Connection Error

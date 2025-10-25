@@ -143,8 +143,14 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Cache Configuration (Redis) - Use django-redis for better compatibility
+# Cache Configuration (Redis) - Use Upstash Redis (HTTP-based, more reliable)
+UPSTASH_REDIS_URL = config('UPSTASH_REDIS_URL', default='https://central-monkey-22361.upstash.io')
+UPSTASH_REDIS_TOKEN = config('UPSTASH_REDIS_TOKEN', default='AVdZAAIncDI1MmVhYzQzZTE5MTE0YTc1YWE0YWZhZThiZjkzY2I0ZHAyMjIzNjE')
+
+# Legacy Redis URL for backward compatibility
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+
+# Django cache using traditional Redis (for caching only)
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -181,9 +187,11 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Celery Configuration
+# Celery Configuration - Use Upstash Redis for reliability
+# Convert Upstash HTTP URL to Redis URL format for Celery
+# Upstash provides both REST and Redis protocol support
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default=REDIS_URL)
-CELERY_RESULT_BACKEND = None  # Disable result backend to avoid Redis connection issues
+CELERY_RESULT_BACKEND = None  # Disable result backend to avoid connection issues
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -200,6 +208,10 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True
 # Redis connection pool settings
 CELERY_REDIS_MAX_CONNECTIONS = 50
 CELERY_BROKER_POOL_LIMIT = 10
+
+# Upstash Redis client for direct HTTP access (used in views)
+UPSTASH_REDIS_REST_URL = UPSTASH_REDIS_URL
+UPSTASH_REDIS_REST_TOKEN = UPSTASH_REDIS_TOKEN
 
 # Celery Beat Schedule
 from celery.schedules import crontab
