@@ -278,9 +278,9 @@ celery -A url_monitor beat -l info
 
    - **Telegram**: Get notifications on Telegram
 
-## 📦 Production Deployment   - **Slack**: Receive alerts in Slack channel
+## 📦 Production Deployment
 
-4. Enter the destination (email address, chat ID, or webhook URL)
+> **🔧 v2.0.1 Critical Fix**: Port binding issue resolved! Dockerfile now uses dynamic `$PORT` for Render deployment. No more repeated restarts. See [`docs/RENDER_TROUBLESHOOTING.md`](docs/RENDER_TROUBLESHOOTING.md) for details.
 
 ### Quick Deploy to Render
 
