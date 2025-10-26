@@ -425,15 +425,42 @@ def scroll_depth_view(request, url_id=None):
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Get scroll depth distribution - filter by user
-    scroll_heatmaps = ScrollHeatmap.objects.filter(
-        date__gte=start_date.date(),
+    # Get all pageviews with scroll data - filter by user
+    pageviews_query = PageView.objects.filter(
+        timestamp__gte=start_date,
         url__user=request.user
     )
     if monitored_url:
-        scroll_heatmaps = scroll_heatmaps.filter(url=monitored_url)
+        pageviews_query = pageviews_query.filter(url=monitored_url)
     
-    scroll_heatmaps = scroll_heatmaps.order_by('-date')
+    # Calculate scroll depth distribution
+    scroll_ranges = {
+        '0-10%': 0, '10-20%': 0, '20-30%': 0, '30-40%': 0, '40-50%': 0,
+        '50-60%': 0, '60-70%': 0, '70-80%': 0, '80-90%': 0, '90-100%': 0
+    }
+    
+    for pv in pageviews_query:
+        depth = pv.scroll_depth
+        if depth < 10:
+            scroll_ranges['0-10%'] += 1
+        elif depth < 20:
+            scroll_ranges['10-20%'] += 1
+        elif depth < 30:
+            scroll_ranges['20-30%'] += 1
+        elif depth < 40:
+            scroll_ranges['30-40%'] += 1
+        elif depth < 50:
+            scroll_ranges['40-50%'] += 1
+        elif depth < 60:
+            scroll_ranges['50-60%'] += 1
+        elif depth < 70:
+            scroll_ranges['60-70%'] += 1
+        elif depth < 80:
+            scroll_ranges['70-80%'] += 1
+        elif depth < 90:
+            scroll_ranges['80-90%'] += 1
+        else:
+            scroll_ranges['90-100%'] += 1
     
     # Get average scroll depth by page - filter by user
     scroll_by_page_query = PageView.objects.filter(
@@ -450,12 +477,25 @@ def scroll_depth_view(request, url_id=None):
         scrolled_to_bottom=Count('id', filter=Q(scroll_depth__gte=90))
     ).order_by('-views')[:15]
     
+    # Get scroll depth over time (daily aggregation)
+    scroll_over_time = pageviews_query.extra(
+        select={'date': 'DATE(timestamp)'}
+    ).values('date').annotate(
+        avg_scroll=Avg('scroll_depth'),
+        total_views=Count('id')
+    ).order_by('date')
+    
+    # Calculate max count for distribution bar scaling
+    max_count = max(scroll_ranges.values()) if scroll_ranges else 1
+    
     context = {
         'monitored_url': monitored_url,
         'all_monitored_urls': all_monitored_urls,
         'days': days,
-        'scroll_heatmaps': scroll_heatmaps,
+        'scroll_ranges': scroll_ranges,
+        'max_count': max_count,
         'scroll_by_page': list(scroll_by_page),
+        'scroll_over_time': list(scroll_over_time),
     }
     
     return render(request, 'analytics/scroll_depth.html', context)
