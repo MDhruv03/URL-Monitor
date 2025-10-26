@@ -88,7 +88,8 @@ def track_analytics(request):
                     process_click(event, device_type)
                 
                 elif event_type == 'scroll':
-                    process_scroll(event)
+                    # Scroll events are now handled by external_tracking.py
+                    pass
                 
                 elif event_type in ['rage_click', 'dead_click', 'error_click', 'hover']:
                     process_mouse_movement(event)
@@ -156,34 +157,7 @@ def process_click(event, device_type):
     )
 
 
-def process_scroll(event):
-    """Process scroll event and update scroll heatmap"""
-    page_url = event.get('page_url')
-    scroll_depth = event.get('scroll_depth', 0)
-    today = timezone.now().date()
-    
-    # Get or create today's scroll heatmap
-    heatmap, created = ScrollHeatmap.objects.get_or_create(
-        url_id=None,  # Set based on URL matching
-        page_url=page_url,
-        date=today,
-        defaults={
-            'depth_distribution': {},
-            'total_views': 0,
-            'average_depth': 0
-        }
-    )
-    
-    # Update depth distribution
-    depth_range = f"{(scroll_depth // 10) * 10}-{((scroll_depth // 10) + 1) * 10}"
-    if depth_range not in heatmap.depth_distribution:
-        heatmap.depth_distribution[depth_range] = 0
-    heatmap.depth_distribution[depth_range] += 1
-    
-    # Update average
-    heatmap.total_views += 1
-    heatmap.average_depth = (heatmap.average_depth * (heatmap.total_views - 1) + scroll_depth) / heatmap.total_views
-    heatmap.save()
+# Removed process_scroll() - now handled by external_tracking.py which updates PageView.scroll_depth
 
 
 def process_mouse_movement(event):
