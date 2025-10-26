@@ -83,8 +83,6 @@ urlpatterns = [
     path('analytics/performance/<uuid:url_id>/', analytics_views.performance_view, name='analytics_performance_url'),
     path('analytics/scroll/', analytics_views.scroll_depth_view, name='analytics_scroll'),
     path('analytics/scroll/<uuid:url_id>/', analytics_views.scroll_depth_view, name='analytics_scroll_url'),
-    path('analytics/sessions/', analytics_views.session_recordings_view, name='analytics_sessions'),
-    path('analytics/sessions/<uuid:url_id>/', analytics_views.session_recordings_view, name='analytics_sessions_url'),
     
     # Export
     path('urls/<uuid:url_id>/export/<str:format>/', views.export_url_data, name='export_url_data'),
