@@ -1,144 +1,285 @@
-# URL Monitor 🔍# URL Monitor 🚀# URL Monitor 🔍
+# URL Monitor 🚀# URL Monitor 🔍# URL Monitor 🚀# URL Monitor 🔍
 
 
 
-A powerful Django-based application for monitoring website uptime and analyzing visitor behavior with real-time tracking, advanced analytics, and customizable alerts.
+A Django-based application for monitoring website uptime and analyzing visitor behavior with real-time tracking and customizable alerts.
 
 
 
-[![Django](https://img.shields.io/badge/Django-5.2.1-green.svg)](https://www.djangoproject.com/)[![Django](https://img.shields.io/badge/Django-5.2.1-green.svg)](https://www.djangoproject.com/)A comprehensive Django-based URL monitoring application that tracks website uptime, performance metrics, and sends real-time alerts when issues are detected.
+[![Django](https://img.shields.io/badge/Django-5.2.1-green.svg)](https://www.djangoproject.com/)A powerful Django-based application for monitoring website uptime and analyzing visitor behavior with real-time tracking, advanced analytics, and customizable alerts.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 
 
-## 🚀 Features[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)## Features ✨
+## ✨ Features[![Django](https://img.shields.io/badge/Django-5.2.1-green.svg)](https://www.djangoproject.com/)[![Django](https://img.shields.io/badge/Django-5.2.1-green.svg)](https://www.djangoproject.com/)A comprehensive Django-based URL monitoring application that tracks website uptime, performance metrics, and sends real-time alerts when issues are detected.
 
 
+
+**Uptime Monitoring**[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+
+- Real-time monitoring with customizable check intervals
+
+- Response time tracking and SSL validation[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
+
+- Auto-cleanup keeps database lean (100 records per URL)
+
+
+
+**Visitor Analytics**
+
+- Page views, click heatmaps, scroll depth tracking## 🚀 Features[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)## Features ✨
+
+- Performance metrics (Core Web Vitals)
+
+- Geolocation and device analytics
+
+- Embeddable JavaScript tracking script
 
 ### **Uptime Monitoring**
 
-- Real-time website monitoring with customizable check intervals (1-60 minutes)
+**Smart Alerts**
 
-- Response time tracking and uptime percentage calculationA powerful Django-based application for monitoring website uptime, performance, and visitor analytics. Features real-time monitoring, advanced analytics (heatmaps, scroll tracking, performance metrics), customizable alerts, and embeddable tracking scripts for external websites.- **Real-time URL Monitoring**: Monitor multiple URLs with customizable check frequencies
+- Multi-channel notifications (Email, Telegram, Slack)- Real-time website monitoring with customizable check intervals (1-60 minutes)
 
-- HTTP status code validation and SSL certificate checking
+- Status change alerts (down/up/slow)
 
-- Custom thresholds for response time and expected status codes- **Performance Tracking**: Track response times, status codes, and uptime percentages
+- Configurable thresholds- Response time tracking and uptime percentage calculationA powerful Django-based application for monitoring website uptime, performance, and visitor analytics. Features real-time monitoring, advanced analytics (heatmaps, scroll tracking, performance metrics), customizable alerts, and embeddable tracking scripts for external websites.- **Real-time URL Monitoring**: Monitor multiple URLs with customizable check frequencies
 
-- Background scheduler (no Celery/Redis required)
+
+
+## 🛠️ Tech Stack- HTTP status code validation and SSL certificate checking
+
+
+
+- **Backend**: Django 5.2.1, Python 3.11+- Custom thresholds for response time and expected status codes- **Performance Tracking**: Track response times, status codes, and uptime percentages
+
+- **Frontend**: Tailwind CSS, JavaScript
+
+- **Database**: PostgreSQL (production) / SQLite (dev)- Background scheduler (no Celery/Redis required)
+
+- **Deployment**: Docker, Render-ready
 
 - Auto-cleanup keeps database lean (100 records per URL)## ✨ Key Features- **Smart Alerts**: Multi-channel alerting (Email, Telegram, Slack)
 
+## 🚀 Quick Start
 
 
-### **Visitor Analytics**- **Analytics Dashboard**: Visualize uptime trends and performance metrics
-
-- **Page Views**: Track unique visitors and session data
-
-- **Click Heatmaps**: Visualize user click patterns### 🔍 **Website Uptime Monitoring**- **Traffic Analytics**: Monitor requests, bandwidth, and status code distribution
-
-- **Scroll Depth**: Measure engagement with scroll tracking
-
-- **Performance Metrics**: Monitor Core Web Vitals (FCP, LCP, FID, CLS)- Real-time uptime tracking with customizable intervals- **User Flow Tracking**: Analyze user navigation patterns
-
-- **Geolocation**: Geographic distribution of visitors
-
-- **Rage Click Detection**: Identify user frustration points- Response time monitoring- **Engagement Metrics**: Track session duration, scroll depth, and interactions
-
-
-
-### **Alerts & Notifications**- HTTP status code validation- **SSL Certificate Validation**: Optional SSL certificate checking
-
-- Multi-channel alerts (Email, Telegram, Slack)
-
-- Configurable notification settings- SSL certificate checking- **Custom Thresholds**: Set custom response time and expected status code thresholds
-
-- Real-time status change notifications
-
-- Notification history and management- Historical data with charts and graphs
-
-
-
-### **Analytics Dashboard**- Automated periodic checks via Celery## Tech Stack 🛠️
-
-- Overview with key metrics and charts
-
-- Interactive heatmaps for click visualization
-
-- Geolocation map with country-level data
-
-- Performance monitoring dashboard### 📊 **Advanced Analytics**- **Backend**: Django 5.2.1
-
-- Scroll depth analysis with distribution charts
-
-- URL-specific filtering across all views- **Page View Tracking**: Monitor visitor traffic and unique visitors- **Task Queue**: Celery with Redis
-
-
-
-## 🛠️ Tech Stack- **Click Heatmaps**: Visualize where users click on your pages- **Database**: SQLite (development) / PostgreSQL (production ready)
-
-
-
-- **Backend**: Django 5.2.1, Python 3.11+- **Scroll Depth Analysis**: Measure how far users scroll- **Frontend**: Tailwind CSS, Django Templates
-
-- **Database**: SQLite (dev) / PostgreSQL (production)
-
-- **Frontend**: Tailwind CSS, Django Templates- **Performance Metrics**: Track Core Web Vitals (FCP, LCP, FID, CLS)- **Tables**: django-tables2
-
-- **Monitoring**: Threading-based background scheduler
-
-- **Analytics**: JavaScript tracking script with CORS support- **Rage Click Detection**: Identify user frustration points- **Forms**: django-crispy-forms with Tailwind styling
-
-- **Deployment**: Render (single web service, no workers needed)
-
-- **Session Recording**: Replay user interactions
-
-## 📋 Installation
-
-- **Geographic Distribution**: See where your visitors come from## Prerequisites 📋
 
 ### Prerequisites
 
-- Python 3.11+- **Device & Browser Analytics**: Understand your audience's technology
+- Python 3.11+### **Visitor Analytics**- **Analytics Dashboard**: Visualize uptime trends and performance metrics
 
-- Node.js and npm (for Tailwind CSS)
+- Node.js & npm
 
-- Git- Python 3.9+
-
-
-
-### Local Setup### 🔔 **Smart Alerting System**- Redis Server
+- PostgreSQL (optional for production)- **Page Views**: Track unique visitors and session data
 
 
 
-1. **Clone the repository**- Multi-channel notifications (Email, Telegram, Slack)- Node.js (for Tailwind CSS compilation)
+### Installation- **Click Heatmaps**: Visualize user click patterns### 🔍 **Website Uptime Monitoring**- **Traffic Analytics**: Monitor requests, bandwidth, and status code distribution
 
-```bash
 
-git clone https://github.com/MDhruv03/URL-Monitor.git- Configurable thresholds
+
+```bash- **Scroll Depth**: Measure engagement with scroll tracking
+
+# Clone repository
+
+git clone https://github.com/MDhruv03/URL-Monitor.git- **Performance Metrics**: Monitor Core Web Vitals (FCP, LCP, FID, CLS)- Real-time uptime tracking with customizable intervals- **User Flow Tracking**: Analyze user navigation patterns
 
 cd URL-Monitor
 
-```- Down/Up status change alerts## Installation 🚀
+- **Geolocation**: Geographic distribution of visitors
+
+# Create virtual environment
+
+python -m venv venv- **Rage Click Detection**: Identify user frustration points- Response time monitoring- **Engagement Metrics**: Track session duration, scroll depth, and interactions
+
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 
 
-2. **Create virtual environment**- Response time breach notifications
+# Install dependencies
+
+pip install -r requirements.txt### **Alerts & Notifications**- HTTP status code validation- **SSL Certificate Validation**: Optional SSL certificate checking
+
+npm install
+
+- Multi-channel alerts (Email, Telegram, Slack)
+
+# Configure environment
+
+cp .env.example .env- Configurable notification settings- SSL certificate checking- **Custom Thresholds**: Set custom response time and expected status code thresholds
+
+# Edit .env with your settings
+
+- Real-time status change notifications
+
+# Setup database
+
+python manage.py migrate- Notification history and management- Historical data with charts and graphs
+
+python manage.py createsuperuser
+
+
+
+# Build CSS
+
+npm run build### **Analytics Dashboard**- Automated periodic checks via Celery## Tech Stack 🛠️
+
+
+
+# Run server- Overview with key metrics and charts
+
+python manage.py runserver
+
+```- Interactive heatmaps for click visualization
+
+
+
+Visit `http://localhost:8000`- Geolocation map with country-level data
+
+
+
+## 🌐 Deployment- Performance monitoring dashboard### 📊 **Advanced Analytics**- **Backend**: Django 5.2.1
+
+
+
+**Render (Recommended)**- Scroll depth analysis with distribution charts
+
+
+
+1. Push to GitHub- URL-specific filtering across all views- **Page View Tracking**: Monitor visitor traffic and unique visitors- **Task Queue**: Celery with Redis
+
+2. Create Web Service on Render
+
+3. Connect repository
+
+4. Add PostgreSQL database
+
+5. Configure environment variables## 🛠️ Tech Stack- **Click Heatmaps**: Visualize where users click on your pages- **Database**: SQLite (development) / PostgreSQL (production ready)
+
+
+
+The app uses Docker for deployment. See `Dockerfile` and `start.sh` for build configuration.
+
+
+
+## 📊 Usage- **Backend**: Django 5.2.1, Python 3.11+- **Scroll Depth Analysis**: Measure how far users scroll- **Frontend**: Tailwind CSS, Django Templates
+
+
+
+**Monitor URLs**- **Database**: SQLite (dev) / PostgreSQL (production)
+
+1. Add URL with check frequency and thresholds
+
+2. View uptime charts and status history- **Frontend**: Tailwind CSS, Django Templates- **Performance Metrics**: Track Core Web Vitals (FCP, LCP, FID, CLS)- **Tables**: django-tables2
+
+3. Set up alerts for downtime
+
+- **Monitoring**: Threading-based background scheduler
+
+**Track Analytics**
+
+1. Get tracking script from URL detail page- **Analytics**: JavaScript tracking script with CORS support- **Rage Click Detection**: Identify user frustration points- **Forms**: django-crispy-forms with Tailwind styling
+
+2. Embed on your website: `<script src="https://your-app.com/tracking/{id}/script.js"></script>`
+
+3. View analytics dashboard for insights- **Deployment**: Render (single web service, no workers needed)
+
+
+
+## 📁 Project Structure- **Session Recording**: Replay user interactions
+
+
+
+```## 📋 Installation
+
+url_monitor/
+
+├── monitor/              # Main app (models, views, scheduler)- **Geographic Distribution**: See where your visitors come from## Prerequisites 📋
+
+├── templates/            # HTML templates
+
+├── static/               # CSS, JS assets### Prerequisites
+
+├── url_monitor/          # Django settings
+
+├── Dockerfile            # Container configuration- Python 3.11+- **Device & Browser Analytics**: Understand your audience's technology
+
+├── start.sh              # Startup script
+
+└── manage.py             # Django CLI- Node.js and npm (for Tailwind CSS)
+
+```
+
+- Git- Python 3.9+
+
+## 🔧 Configuration
+
+
+
+Key environment variables:
+
+### Local Setup### 🔔 **Smart Alerting System**- Redis Server
 
 ```bash
 
-python -m venv venv- Real-time notification center### 1. Clone the Repository
+SECRET_KEY=your-secret-key
 
-# Windows
+DEBUG=False
 
-venv\Scripts\activate
+ALLOWED_HOSTS=your-domain.com1. **Clone the repository**- Multi-channel notifications (Email, Telegram, Slack)- Node.js (for Tailwind CSS compilation)
 
-# Linux/Mac
+DATABASE_URL=postgresql://user:pass@host/db
 
-source venv/bin/activate### 🎯 **Embeddable External Tracking**```bash
+``````bash
+
+
+
+## 🤝 Contributinggit clone https://github.com/MDhruv03/URL-Monitor.git- Configurable thresholds
+
+
+
+1. Fork the repositorycd URL-Monitor
+
+2. Create feature branch (`git checkout -b feature/name`)
+
+3. Commit changes (`git commit -m 'Add feature'`)```- Down/Up status change alerts## Installation 🚀
+
+4. Push to branch (`git push origin feature/name`)
+
+5. Open Pull Request
+
+
+
+## 📝 License2. **Create virtual environment**- Response time breach notifications
+
+
+
+MIT License - see [LICENSE](LICENSE) file```bash
+
+
+
+## 👨‍💻 Authorpython -m venv venv- Real-time notification center### 1. Clone the Repository
+
+
+
+**Dhruv Maheshwari**# Windows
+
+- GitHub: [@MDhruv03](https://github.com/MDhruv03)
+
+- Live Demo: [url-monitor-2xlk.onrender.com](https://url-monitor-2xlk.onrender.com)venv\Scripts\activate
+
+
+
+---# Linux/Mac
+
+
+
+Built with ❤️ using Django and Tailwind CSSsource venv/bin/activate### 🎯 **Embeddable External Tracking**```bash
+
 
 ```
 
@@ -1003,7 +1144,7 @@ This project is licensed under the MIT License.
 
 **Dhruv Maheshwari**
 - GitHub: [@MDhruv03](https://github.com/MDhruv03)
-- Email: dhruvmaheshwari03@gmail.com
+- Email: dhruvmaheshwari2004@gmail.com
 
 ## 🙏 Acknowledgments
 
@@ -1011,9 +1152,3 @@ This project is licensed under the MIT License.
 - Tailwind CSS for the beautiful UI components
 - Chart.js for data visualization
 - Inspired by Microsoft Clarity and Google Analytics
-
----
-
-**Made with ❤️ by Dhruv Maheshwari**
-
-*Monitoring made simple, powerful, and beautiful.*
