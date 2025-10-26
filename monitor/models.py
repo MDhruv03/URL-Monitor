@@ -6,22 +6,6 @@ import uuid
 from django.urls import reverse
 
 
-class URLGroup(models.Model):
-    """Group/Category for organizing monitored URLs"""
-    name = models.CharField(max_length=100)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
-    description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default='#3B82F6', help_text="Hex color code")
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['user', 'name']
-        ordering = ['name']
-    
-    def __str__(self):
-        return f"{self.name} ({self.user.username})"
-
-
 class MonitoredURL(models.Model):
     FREQUENCY_CHOICES = [
         (1, '1 minute'),
@@ -33,7 +17,6 @@ class MonitoredURL(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
-    group = models.ForeignKey(URLGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='urls')
     url = models.URLField(max_length=500)
     name = models.CharField(max_length=100)
     frequency = models.IntegerField(choices=FREQUENCY_CHOICES, default=5)
@@ -61,49 +44,6 @@ class MonitoredURL(models.Model):
     
     def get_absolute_url(self):
         return reverse('monitor:url_detail', args=[self.id])
-
-
-class StatusPage(models.Model):
-    """Public status page for sharing monitoring status"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    slug = models.SlugField(unique=True, max_length=100)
-    is_public = models.BooleanField(default=True)
-    show_response_time = models.BooleanField(default=True)
-    show_uptime_percentage = models.BooleanField(default=True)
-    custom_domain = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    # Customization
-    logo_url = models.URLField(blank=True, null=True)
-    theme_color = models.CharField(max_length=7, default='#3B82F6')
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return self.title
-    
-    def get_public_url(self):
-        return reverse('monitor:public_status_page', args=[self.slug])
-
-
-class StatusPageURL(models.Model):
-    """URLs displayed on a status page"""
-    status_page = models.ForeignKey(StatusPage, on_delete=models.CASCADE, related_name='monitored_urls')
-    url = models.ForeignKey(MonitoredURL, on_delete=models.CASCADE)
-    display_name = models.CharField(max_length=100, blank=True)
-    order = models.PositiveIntegerField(default=0)
-    
-    class Meta:
-        ordering = ['order', 'id']
-        unique_together = ['status_page', 'url']
-    
-    def __str__(self):
-        return f"{self.display_name or self.url.name} on {self.status_page.title}"
 
 
 class URLStatus(models.Model):

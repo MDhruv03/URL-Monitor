@@ -89,4 +89,21 @@ urlpatterns = [
     
     # Export
     path('urls/<uuid:url_id>/export/<str:format>/', views.export_url_data, name='export_url_data'),
+    
+    # Groups
+    path('groups/', views.group_list, name='group_list'),
+    path('groups/create/', views.group_create, name='group_create'),
+    path('groups/<int:group_id>/edit/', views.group_edit, name='group_edit'),
+    path('groups/<int:group_id>/delete/', views.group_delete, name='group_delete'),
+    
+    # Status Pages
+    path('status-pages/', views.status_page_list, name='status_page_list'),
+    path('status-pages/create/', views.status_page_create, name='status_page_create'),
+    path('status-pages/<uuid:page_id>/edit/', views.status_page_edit, name='status_page_edit'),
+    path('status-pages/<uuid:page_id>/delete/', views.status_page_delete, name='status_page_delete'),
+    path('status-pages/<uuid:page_id>/add-url/<uuid:url_id>/', views.status_page_add_url, name='status_page_add_url'),
+    path('status-pages/<uuid:page_id>/remove-url/<uuid:url_id>/', views.status_page_remove_url, name='status_page_remove_url'),
+    
+    # Public Status Page
+    path('status/<slug:slug>/', views.public_status_page, name='public_status_page'),
 ]

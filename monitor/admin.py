@@ -1,21 +1,14 @@
 from django.contrib import admin
 from monitor.models import (
     MonitoredURL, URLStatus, Alert, Notification,
-    URLGroup, StatusPage, StatusPageURL,
     PageView, ClickHeatmap, ScrollHeatmap, MouseMovement,
     SessionRecording, PerformanceMetric, ConversionFunnel
 )
 
-@admin.register(URLGroup)
-class URLGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'user', 'created_at')
-    list_filter = ('user', 'created_at')
-    search_fields = ('name', 'description')
-
 @admin.register(MonitoredURL)
 class MonitoredURLAdmin(admin.ModelAdmin):
-    list_display = ('name', 'url', 'user', 'group', 'is_active')
-    list_filter = ('is_active', 'user', 'group')
+    list_display = ('name', 'url', 'user', 'is_active')
+    list_filter = ('is_active', 'user')
     search_fields = ('name', 'url')
 
 @admin.register(URLStatus)
@@ -35,19 +28,6 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'message', 'is_read', 'created_at')
     list_filter = ('is_read', 'created_at')
     search_fields = ('message',)
-
-@admin.register(StatusPage)
-class StatusPageAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'user', 'is_public', 'created_at')
-    list_filter = ('is_public', 'created_at')
-    search_fields = ('title', 'slug', 'description')
-    prepopulated_fields = {'slug': ('title',)}
-
-@admin.register(StatusPageURL)
-class StatusPageURLAdmin(admin.ModelAdmin):
-    list_display = ('status_page', 'url', 'display_name', 'order')
-    list_filter = ('status_page',)
-    ordering = ['status_page', 'order']
 
 @admin.register(PageView)
 class PageViewAdmin(admin.ModelAdmin):

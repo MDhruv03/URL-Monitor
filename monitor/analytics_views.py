@@ -159,22 +159,34 @@ def analytics_overview(request, url_id=None):
 @handle_analytics_errors
 def heatmap_view(request, url_id=None):
     """Heatmap visualization showing click patterns"""
+    # Get the monitored URL if url_id is provided, ensure user ownership
+    monitored_url = None
+    if url_id:
+        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    # Get all monitored URLs for the dropdown
+    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+    
     # Get page URL filter
     page_url = request.GET.get('page_url', '')
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Get click data
-    clicks_query = ClickHeatmap.objects.filter(timestamp__gte=start_date)
+    # Base query - MUST filter by user's URLs only
+    clicks_query = ClickHeatmap.objects.filter(
+        timestamp__gte=start_date,
+        url__user=request.user  # Critical: filter by user ownership
+    )
     
-    if page_url:
+    if monitored_url:
+        clicks_query = clicks_query.filter(url=monitored_url)
+    elif page_url:
         clicks_query = clicks_query.filter(page_url=page_url)
-    elif url_id:
-        clicks_query = clicks_query.filter(url_id=url_id)
     
-    # Get all pages that have click data
+    # Get all pages that have click data - filter by user
     pages_with_clicks = ClickHeatmap.objects.filter(
-        timestamp__gte=start_date
+        timestamp__gte=start_date,
+        url__user=request.user
     ).values('page_url').annotate(
         click_count=Count('id')
     ).order_by('-click_count')[:20]
@@ -187,13 +199,16 @@ def heatmap_view(request, url_id=None):
         count=Count('id')
     ).order_by('-count')
     
-    # Get rage clicks
+    # Get rage clicks - filter by user
     rage_clicks = MouseMovement.objects.filter(
         timestamp__gte=start_date,
-        movement_type='rage_click'
+        movement_type='rage_click',
+        url__user=request.user
     )
     
-    if page_url:
+    if monitored_url:
+        rage_clicks = rage_clicks.filter(url=monitored_url)
+    elif page_url:
         rage_clicks = rage_clicks.filter(page_url=page_url)
     
     rage_click_data = rage_clicks.values(
@@ -202,13 +217,16 @@ def heatmap_view(request, url_id=None):
         occurrences=Count('id')
     ).order_by('-occurrences')
     
-    # Get dead clicks
+    # Get dead clicks - filter by user
     dead_clicks = MouseMovement.objects.filter(
         timestamp__gte=start_date,
-        movement_type='dead_click'
+        movement_type='dead_click',
+        url__user=request.user
     )
     
-    if page_url:
+    if monitored_url:
+        dead_clicks = dead_clicks.filter(url=monitored_url)
+    elif page_url:
         dead_clicks = dead_clicks.filter(page_url=page_url)
     
     dead_click_data = dead_clicks.values(
@@ -218,6 +236,8 @@ def heatmap_view(request, url_id=None):
     ).order_by('-count')
     
     context = {
+        'monitored_url': monitored_url,
+        'all_monitored_urls': all_monitored_urls,
         'page_url': page_url,
         'days': days,
         'pages_with_clicks': list(pages_with_clicks),
@@ -380,27 +400,47 @@ def performance_view(request, url_id=None):
 
 @login_required
 @handle_analytics_errors
-def scroll_depth_view(request):
+def scroll_depth_view(request, url_id=None):
     """Scroll depth analysis"""
+    # Get the monitored URL if url_id is provided, ensure user ownership
+    monitored_url = None
+    if url_id:
+        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    # Get all monitored URLs for the dropdown
+    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+    
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Get scroll depth distribution
+    # Get scroll depth distribution - filter by user
     scroll_heatmaps = ScrollHeatmap.objects.filter(
-        date__gte=start_date.date()
-    ).order_by('-date')
+        date__gte=start_date.date(),
+        url__user=request.user
+    )
+    if monitored_url:
+        scroll_heatmaps = scroll_heatmaps.filter(url=monitored_url)
     
-    # Get average scroll depth by page
-    scroll_by_page = PageView.objects.filter(
+    scroll_heatmaps = scroll_heatmaps.order_by('-date')
+    
+    # Get average scroll depth by page - filter by user
+    scroll_by_page_query = PageView.objects.filter(
         timestamp__gte=start_date,
-        scroll_depth__gt=0
-    ).values('page_url').annotate(
+        scroll_depth__gt=0,
+        url__user=request.user
+    )
+    if monitored_url:
+        scroll_by_page_query = scroll_by_page_query.filter(url=monitored_url)
+    
+    scroll_by_page = scroll_by_page_query.values('page_url').annotate(
         avg_scroll=Avg('scroll_depth'),
         views=Count('id'),
         scrolled_to_bottom=Count('id', filter=Q(scroll_depth__gte=90))
     ).order_by('-views')[:15]
     
     context = {
+        'monitored_url': monitored_url,
+        'all_monitored_urls': all_monitored_urls,
         'days': days,
         'scroll_heatmaps': scroll_heatmaps,
         'scroll_by_page': list(scroll_by_page),
@@ -411,15 +451,28 @@ def scroll_depth_view(request):
 
 @login_required
 @handle_analytics_errors
-def session_recordings_view(request):
+def session_recordings_view(request, url_id=None):
     """Session recordings list and player"""
+    # Get the monitored URL if url_id is provided, ensure user ownership
+    monitored_url = None
+    if url_id:
+        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
+    
+    # Get all monitored URLs for the dropdown
+    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
+    
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Get sessions
-    sessions = SessionRecording.objects.filter(
-        start_time__gte=start_date
-    ).order_by('-start_time')[:50]
+    # Get sessions - filter by user
+    sessions_query = SessionRecording.objects.filter(
+        start_time__gte=start_date,
+        url__user=request.user
+    )
+    if monitored_url:
+        sessions_query = sessions_query.filter(url=monitored_url)
+    
+    sessions = sessions_query.order_by('-start_time')[:50]
     
     # Get session details if session_id is provided
     session_id = request.GET.get('session_id')
@@ -427,7 +480,10 @@ def session_recordings_view(request):
     
     if session_id:
         try:
-            session_details = SessionRecording.objects.get(session_id=session_id)
+            session_details = SessionRecording.objects.get(
+                session_id=session_id,
+                url__user=request.user  # Ensure user owns this session's URL
+            )
             # Get all pageviews for this session
             session_pageviews = PageView.objects.filter(
                 session_id=session_id
@@ -437,6 +493,8 @@ def session_recordings_view(request):
             pass
     
     context = {
+        'monitored_url': monitored_url,
+        'all_monitored_urls': all_monitored_urls,
         'days': days,
         'sessions': sessions,
         'session_details': session_details,
