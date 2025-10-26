@@ -37,7 +37,7 @@ class URLMonitorScheduler:
         
     def _run_scheduler(self):
         """Main scheduler loop - checks URLs periodically"""
-        from monitor.models import MonitoredURL
+        from monitor.models import MonitoredURL, URLStatus
         from monitor.tasks import check_url_status
         
         logger.info("Scheduler loop started")
@@ -50,10 +50,12 @@ class URLMonitorScheduler:
                 
                 for url in urls_to_check:
                     try:
-                        # Check if URL is due for checking
-                        if url.last_checked:
-                            time_since_check = (now - url.last_checked).total_seconds() / 60
-                            if time_since_check < url.check_frequency:
+                        # Check if URL is due for checking based on last status
+                        last_status = URLStatus.objects.filter(url=url).order_by('-timestamp').first()
+                        
+                        if last_status:
+                            time_since_check = (now - last_status.timestamp).total_seconds() / 60
+                            if time_since_check < url.frequency:
                                 continue  # Not due yet
                         
                         # Run check in separate thread to avoid blocking
@@ -120,14 +122,10 @@ class URLMonitorScheduler:
                 is_up=is_up,
                 status_code=status_code,
                 response_time=response_time,
-                checked_at=timezone.now()
+                timestamp=timezone.now()
             )
             
-            # Update URL's last_checked timestamp
-            url.last_checked = timezone.now()
-            url.save(update_fields=['last_checked'])
-            
-            # Send alert if URL is down
+            logger.info(f"Check completed: {url.url} - Status: {status_code}, Up: {is_up}")
             if not is_up:
                 try:
                     from monitor.tasks import send_alert
