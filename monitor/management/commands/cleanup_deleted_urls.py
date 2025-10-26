@@ -4,8 +4,8 @@ Usage: python manage.py cleanup_deleted_urls
 """
 from django.core.management.base import BaseCommand
 from monitor.models import (
-    URLStatus, PageView, ClickHeatmap, ScrollHeatmap, 
-    MouseMovement, SessionRecording, PerformanceMetric,
+    URLStatus, PageView, ClickHeatmap,
+    MouseMovement, PerformanceMetric,
     Alert, Notification, MonitoredURL
 )
 

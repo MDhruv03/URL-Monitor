@@ -5,8 +5,8 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 from .models import (
-    MonitoredURL, PageView, ClickHeatmap, ScrollHeatmap, 
-    MouseMovement, SessionRecording, PerformanceMetric
+    MonitoredURL, PageView, ClickHeatmap,
+    MouseMovement, PerformanceMetric
 )
 from user_agents import parse
 import requests

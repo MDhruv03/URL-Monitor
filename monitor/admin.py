@@ -1,8 +1,8 @@
 from django.contrib import admin
 from monitor.models import (
     MonitoredURL, URLStatus, Alert, Notification,
-    PageView, ClickHeatmap, ScrollHeatmap, MouseMovement,
-    SessionRecording, PerformanceMetric, ConversionFunnel
+    PageView, ClickHeatmap, MouseMovement,
+    PerformanceMetric
 )
 
 @admin.register(MonitoredURL)
@@ -43,12 +43,6 @@ class ClickHeatmapAdmin(admin.ModelAdmin):
     search_fields = ('page_url', 'element_id', 'element_class')
     readonly_fields = ('timestamp',)
 
-@admin.register(ScrollHeatmap)
-class ScrollHeatmapAdmin(admin.ModelAdmin):
-    list_display = ('page_url', 'date', 'total_views', 'average_depth')
-    list_filter = ('date',)
-    search_fields = ('page_url',)
-
 @admin.register(MouseMovement)
 class MouseMovementAdmin(admin.ModelAdmin):
     list_display = ('movement_type', 'page_url', 'click_count', 'timestamp')
@@ -56,23 +50,9 @@ class MouseMovementAdmin(admin.ModelAdmin):
     search_fields = ('page_url', 'session_id')
     readonly_fields = ('timestamp',)
 
-@admin.register(SessionRecording)
-class SessionRecordingAdmin(admin.ModelAdmin):
-    list_display = ('session_id', 'start_time', 'end_time', 'pages_visited', 'total_clicks', 'had_rage_clicks')
-    list_filter = ('had_rage_clicks', 'start_time')
-    search_fields = ('session_id',)
-    readonly_fields = ('start_time',)
-
 @admin.register(PerformanceMetric)
 class PerformanceMetricAdmin(admin.ModelAdmin):
     list_display = ('page_url', 'largest_contentful_paint', 'first_input_delay', 'cumulative_layout_shift', 'timestamp')
     list_filter = ('timestamp',)
     search_fields = ('page_url', 'session_id')
     readonly_fields = ('timestamp',)
-
-@admin.register(ConversionFunnel)
-class ConversionFunnelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'conversion_rate', 'created_at')
-    list_filter = ('created_at',)
-    search_fields = ('name',)
-    readonly_fields = ('created_at', 'updated_at')

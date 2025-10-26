@@ -5,7 +5,7 @@ Usage: python manage.py cleanup_old_data --days 90
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
-from monitor.models import URLStatus, Notification, TrafficMetric, UserFlow, Engagement
+from monitor.models import URLStatus, Notification
 
 
 class Command(BaseCommand):
@@ -57,37 +57,7 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"{'Would delete' if dry_run else 'Deleted'} {notif_count} read notifications")
         )
 
-        # Clean TrafficMetric records
-        old_metrics = TrafficMetric.objects.filter(timestamp__lt=cutoff_date)
-        metric_count = old_metrics.count()
-        if not dry_run:
-            old_metrics.delete()
-        self.stdout.write(
-            self.style.SUCCESS(f"{'Would delete' if dry_run else 'Deleted'} {metric_count} traffic metric records")
-        )
-
-        # Clean UserFlow records
-        old_flows = UserFlow.objects.filter(timestamp_end__lt=cutoff_date)
-        flow_count = old_flows.count()
-        if not dry_run:
-            old_flows.delete()
-        self.stdout.write(
-            self.style.SUCCESS(f"{'Would delete' if dry_run else 'Deleted'} {flow_count} user flow records")
-        )
-
-        # Clean Engagement records
-        old_engagements = Engagement.objects.filter(timestamp__lt=cutoff_date)
-        engagement_count = old_engagements.count()
-        if not dry_run:
-            old_engagements.delete()
-        self.stdout.write(
-            self.style.SUCCESS(f"{'Would delete' if dry_run else 'Deleted'} {engagement_count} engagement records")
-        )
-
-        total_deleted = (
-            status_count + notif_count + metric_count + 
-            flow_count + engagement_count
-        )
+        total_deleted = status_count + notif_count
         
         self.stdout.write(
             self.style.SUCCESS(

@@ -10,8 +10,7 @@ from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 from .models import (
-    MonitoredURL, URLStatus, Alert, Notification,
-    TrafficMetric, UserFlow, Engagement
+    MonitoredURL, URLStatus, Alert, Notification
 )
 from .forms import (
     UserRegistrationForm,
@@ -573,57 +572,6 @@ def settings_view(request):
     
     return render(request, 'settings.html', {'form': form})
 
-@login_required
-@login_required
-def traffic_dashboard(request, url_id):
-    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    metrics = TrafficMetric.objects.filter(url=url).order_by('-timestamp')[:24]
-    
-    # Process data for charts
-    time_labels = [m.timestamp.strftime('%H:%M') for m in reversed(metrics)]
-    request_data = [m.requests for m in reversed(metrics)]
-    bandwidth_data = [m.bandwidth for m in reversed(metrics)]
-    
-    return render(request, 'traffic_dashboard.html', {
-        'url': url,
-        'time_labels': json.dumps(time_labels),
-        'request_data': json.dumps(request_data),
-        'bandwidth_data': json.dumps(bandwidth_data)
-    })
-
-@login_required
-def user_flows(request, url_id):
-    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    flows = UserFlow.objects.filter(url=url).order_by('-timestamp_end')[:100]
-    
-    # Process for Sankey diagram
-    path_links = {}
-    for flow in flows:
-        path = flow.path_sequence
-        for i in range(len(path)-1):
-            key = f"{path[i]}→{path[i+1]}"
-            path_links[key] = path_links.get(key, 0) + 1
-    
-    return render(request, 'user_flows.html', {
-        'url': url,
-        'flows': flows,
-        'path_links': path_links
-    })
-
-def engagement_metrics(request, url_id):
-    url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    metrics = Engagement.objects.filter(url=url).order_by('-timestamp')[:1000]
-    
-    # Calculate aggregates
-    avg_duration = metrics.aggregate(avg=Avg('duration'))['avg']
-    bounce_rate = metrics.filter(interactions__lt=2).count() / metrics.count() if metrics.count() > 0 else 0
-    
-    return render(request, 'engagement.html', {
-        'url': url,
-        'metrics': metrics,
-        'avg_duration': avg_duration,
-        'bounce_rate': bounce_rate
-    })
 
 # ==================== EXPORT VIEWS ====================
 

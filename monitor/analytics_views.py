@@ -7,8 +7,8 @@ from django.utils import timezone
 from datetime import timedelta
 from functools import wraps
 from .models import (
-    MonitoredURL, PageView, ClickHeatmap, ScrollHeatmap,
-    MouseMovement, SessionRecording, PerformanceMetric
+    MonitoredURL, PageView, ClickHeatmap,
+    MouseMovement, PerformanceMetric
 )
 import json
 import logging
@@ -499,57 +499,3 @@ def scroll_depth_view(request, url_id=None):
     }
     
     return render(request, 'analytics/scroll_depth.html', context)
-
-
-@login_required
-@handle_analytics_errors
-def session_recordings_view(request, url_id=None):
-    """Session recordings list and player"""
-    # Get the monitored URL if url_id is provided, ensure user ownership
-    monitored_url = None
-    if url_id:
-        monitored_url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    
-    # Get all monitored URLs for the dropdown
-    all_monitored_urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
-    
-    days = int(request.GET.get('days', 7))
-    start_date = timezone.now() - timedelta(days=days)
-    
-    # Get sessions - filter by user
-    sessions_query = SessionRecording.objects.filter(
-        start_time__gte=start_date,
-        url__user=request.user
-    )
-    if monitored_url:
-        sessions_query = sessions_query.filter(url=monitored_url)
-    
-    sessions = sessions_query.order_by('-start_time')[:50]
-    
-    # Get session details if session_id is provided
-    session_id = request.GET.get('session_id')
-    session_details = None
-    
-    if session_id:
-        try:
-            session_details = SessionRecording.objects.get(
-                session_id=session_id,
-                url__user=request.user  # Ensure user owns this session's URL
-            )
-            # Get all pageviews for this session
-            session_pageviews = PageView.objects.filter(
-                session_id=session_id
-            ).order_by('timestamp')
-            session_details.pageviews = session_pageviews
-        except SessionRecording.DoesNotExist:
-            pass
-    
-    context = {
-        'monitored_url': monitored_url,
-        'all_monitored_urls': all_monitored_urls,
-        'days': days,
-        'sessions': sessions,
-        'session_details': session_details,
-    }
-    
-    return render(request, 'analytics/sessions.html', context)

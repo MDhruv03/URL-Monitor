@@ -46,9 +46,8 @@ urlpatterns = [
     # API Endpoints
     path('api/urls/<uuid:url_id>/status/', views.get_url_status, name='get_url_status'),
     path('api/urls/<uuid:url_id>/chart/', views.get_uptime_chart_data, name='get_uptime_chart_data'),
-    path('api/analytics/track/', analytics_api.track_analytics, name='track_analytics'),
     
-    # External URL Tracking (for monitored websites)
+    # External URL Tracking (for monitored websites) - Primary tracking system
     path('tracking/<uuid:url_id>/script.js', external_tracking.get_tracking_script, name='tracking_script'),
     path('api/track/<uuid:url_id>/', external_tracking.track_external_url, name='track_external_url'),
     path('tracking/<uuid:url_id>/instructions/', external_tracking.get_tracking_instructions, name='tracking_instructions'),
@@ -67,12 +66,7 @@ urlpatterns = [
     # Settings
     path('settings/', views.settings_view, name='settings'),
 
-    # Analytics
-    path('analytics/traffic/<uuid:url_id>/', views.traffic_dashboard, name='traffic_dashboard'),
-    path('analytics/flows/<uuid:url_id>/', views.user_flows, name='user_flows'),
-    path('analytics/engagement/<uuid:url_id>/', views.engagement_metrics, name='engagement_metrics'),
-    
-    # New Analytics Dashboard
+    # Analytics Dashboard
     path('analytics/', analytics_views.analytics_overview, name='analytics_overview'),
     path('analytics/<uuid:url_id>/', analytics_views.analytics_overview, name='analytics_overview_url'),
     path('analytics/heatmap/', analytics_views.heatmap_view, name='analytics_heatmap'),
