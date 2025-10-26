@@ -117,6 +117,9 @@ def get_tracking_script(request, url_id):
                     if (this.clickCount >= 3) {{
                         this.queueEvent({{
                             type: 'rage_click',
+                            page_url: window.location.pathname,
+                            session_id: this.sessionId,
+                            visitor_id: this.visitorId,
                             x_position: position.x,
                             y_position: position.y,
                             click_count: this.clickCount,
@@ -133,6 +136,9 @@ def get_tracking_script(request, url_id):
                 // Track regular click
                 this.queueEvent({{
                     type: 'click',
+                    page_url: window.location.pathname,
+                    session_id: this.sessionId,
+                    visitor_id: this.visitorId,
                     x_position: e.clientX,
                     y_position: e.clientY,
                     viewport_width: window.innerWidth,
@@ -161,6 +167,9 @@ def get_tracking_script(request, url_id):
                     
                     this.queueEvent({{
                         type: 'scroll',
+                        page_url: window.location.pathname,
+                        session_id: this.sessionId,
+                        visitor_id: this.visitorId,
                         scroll_depth: scrollDepth,
                         timestamp: new Date().toISOString()
                     }});
@@ -176,6 +185,9 @@ def get_tracking_script(request, url_id):
                     const timing = performance.timing;
                     const data = {{
                         type: 'performance',
+                        page_url: window.location.pathname,
+                        session_id: this.sessionId,
+                        visitor_id: this.visitorId,
                         dom_load_time: timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart,
                         page_load_time: timing.loadEventEnd - timing.navigationStart,
                         timestamp: new Date().toISOString()
@@ -197,6 +209,9 @@ def get_tracking_script(request, url_id):
             const timeOnPage = Math.round((Date.now() - this.pageLoadTime) / 1000);
             this.sendBeacon({{
                 type: 'page_leave',
+                page_url: window.location.pathname,
+                session_id: this.sessionId,
+                visitor_id: this.visitorId,
                 time_on_page: timeOnPage,
                 scroll_depth: this.maxScrollDepth,
                 timestamp: new Date().toISOString()
