@@ -401,9 +401,10 @@ def edit_url(request, url_id):
 @require_http_methods(['POST'])
 def delete_url(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    url.is_active = False
-    url.save()
-    messages.success(request, 'URL monitoring stopped successfully!')
+    url_name = url.name
+    # Actually delete the URL and all associated data (cascading delete handles related records)
+    url.delete()
+    messages.success(request, f'URL "{url_name}" and all its data deleted successfully!')
     return redirect('monitor:url_list')
 
 @login_required
