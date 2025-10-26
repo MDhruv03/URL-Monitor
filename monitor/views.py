@@ -279,7 +279,27 @@ def dashboard(request):
 
 @login_required
 def url_list(request):
-    table = URLTable(MonitoredURL.objects.filter(user=request.user))
+    urls = MonitoredURL.objects.filter(user=request.user)
+    
+    # Enrich each URL with extra stats
+    enriched_urls = []
+    for url in urls:
+        # Get 24h uptime
+        now = timezone.now()
+        statuses_24h = url.statuses.filter(timestamp__gte=now - timedelta(hours=24))
+        if statuses_24h.exists():
+            up_count = statuses_24h.filter(is_up=True).count()
+            url.uptime_24h = round((up_count / statuses_24h.count()) * 100, 2)
+        else:
+            url.uptime_24h = None
+        
+        # Get last response time
+        last_status = url.statuses.first()
+        url.last_response_time = last_status.response_time if last_status else None
+        
+        enriched_urls.append(url)
+    
+    table = URLTable(enriched_urls)
     RequestConfig(request, paginate={'per_page': 10}).configure(table)
     return render(request, 'url_list.html', {'table': table})
 
@@ -372,10 +392,23 @@ def check_now(request, url_id):
 
 @login_required
 def alert_list(request):
-    alerts = Alert.objects.filter(user=request.user)
+    alerts = Alert.objects.filter(user=request.user).select_related('url')
+    
+    # Group alerts by URL
+    from collections import defaultdict
+    alerts_by_url = defaultdict(list)
+    for alert in alerts:
+        alerts_by_url[alert.url].append(alert)
+    
+    # Convert to list of tuples for template
+    grouped_alerts = [(url, list(url_alerts)) for url, url_alerts in alerts_by_url.items()]
+    
     table = AlertTable(alerts)
     RequestConfig(request, paginate={'per_page': 10}).configure(table)
-    return render(request, 'alert_list.html', {'table': table})
+    return render(request, 'alert_list.html', {
+        'table': table,
+        'grouped_alerts': grouped_alerts,
+    })
 
 @login_required
 def add_alert(request, url_id=None):

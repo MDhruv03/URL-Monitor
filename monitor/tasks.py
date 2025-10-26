@@ -36,9 +36,15 @@ def check_url_status(url_id):
         )
         response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
         status_code = response.status_code
-        is_up = (status_code == url.expected_status and 
-                response_time <= url.response_time_threshold)
+        
+        # URL is UP if it returns the expected status code
+        # Response time is tracked but doesn't affect up/down status
+        is_up = (status_code == url.expected_status)
         error_message = None
+        
+        # Log warning if response time exceeds threshold (but still mark as UP)
+        if response_time > url.response_time_threshold:
+            logger.warning(f"[CELERY WORKER] {url.name} - SLOW RESPONSE: {response_time:.0f}ms (threshold: {url.response_time_threshold}ms)")
         
         logger.info(f"[CELERY WORKER] {url.name} - Status: {status_code}, Response: {response_time:.0f}ms, Up: {is_up}")
         

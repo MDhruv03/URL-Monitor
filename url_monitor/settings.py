@@ -238,13 +238,15 @@ CELERY_REDIS_MAX_CONNECTIONS = 50
 CELERY_BROKER_POOL_LIMIT = 10
 
 # SSL Configuration for Upstash Redis (rediss://)
-# Required when using secure Redis connections
-CELERY_BROKER_USE_SSL = {
-    'ssl_cert_reqs': None  # Accept Upstash's SSL certificate without verification
-}
-CELERY_REDIS_BACKEND_USE_SSL = {
-    'ssl_cert_reqs': None
-}
+# Only use SSL settings when using Upstash Redis (rediss://)
+# For local Redis (redis://), SSL should NOT be configured
+if CELERY_BROKER_URL and CELERY_BROKER_URL.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = {
+        'ssl_cert_reqs': None  # Accept Upstash's SSL certificate without verification
+    }
+    CELERY_REDIS_BACKEND_USE_SSL = {
+        'ssl_cert_reqs': None
+    }
 
 # Upstash Redis client for direct HTTP access (used in views)
 UPSTASH_REDIS_REST_URL = UPSTASH_REDIS_URL

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load django_tables2 %}
+{% load humanize %}
 
 {% block title %}Alerts{% endblock %}
 
@@ -9,21 +9,116 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-4xl font-bold tracking-tight">Alerts</h1>
-            <p class="mt-2 text-white/50 text-sm">Manage your notification preferences and alerts</p>
+            <p class="mt-2 text-white/50 text-sm">Manage your notification preferences and alerts by URL</p>
         </div>
-        <a href="{% url 'monitor:add_alert' %}" class="group relative px-6 py-3 bg-white text-black rounded-xl font-medium hover:bg-white/90 transition-all duration-200 hover-lift">
-            <span class="flex items-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span>Add Alert</span>
-            </span>
+        <a href="{% url 'monitor:add_alert' %}" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Alert
         </a>
     </div>
 
-    <!-- Table -->
-    <div class="glass-effect rounded-2xl overflow-hidden">
-        {% render_table table "partials/table.html" %}
+    <!-- Alerts Grouped by URL -->
+    {% if grouped_alerts %}
+    <div class="space-y-6">
+        {% for url, url_alerts in grouped_alerts %}
+        <div class="glass-effect rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:border-white/20">
+            <!-- URL Header -->
+            <div class="bg-white/5 border-b border-white/10 p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-1">{{ url.name }}</h3>
+                        <p class="text-white/50 text-sm break-all">{{ url.url }}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'monitor:url_detail' url.id %}" 
+                           class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition-all duration-200">
+                            View URL
+                        </a>
+                        <a href="{% url 'monitor:add_alert' url.id %}" 
+                           class="px-4 py-2 bg-white hover:bg-white/90 border border-white rounded-lg text-black text-sm font-medium transition-all duration-200">
+                            Add Alert
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts for this URL -->
+            <div class="divide-y divide-white/10">
+                {% for alert in url_alerts %}
+                <div class="p-6 hover:bg-white/5 transition-colors duration-200">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 space-y-3">
+                            <!-- Alert Status & Method -->
+                            <div class="flex items-center space-x-3">
+                                {% if alert.is_active %}
+                                <span class="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-semibold">
+                                    Active
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/20 text-white/50 text-sm font-semibold">
+                                    Inactive
+                                </span>
+                                {% endif %}
+                                
+                                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/70 text-sm font-medium">
+                                    {{ alert.get_method_display }}
+                                </span>
+                            </div>
+
+                            <!-- Destination -->
+                            <div class="space-y-1">
+                                <p class="text-white/40 text-xs uppercase tracking-wider">Destination</p>
+                                <p class="text-white font-medium">{{ alert.destination }}</p>
+                            </div>
+
+                            <!-- Last Sent -->
+                            {% if alert.last_sent %}
+                            <div class="space-y-1">
+                                <p class="text-white/40 text-xs uppercase tracking-wider">Last Sent</p>
+                                <p class="text-white/70 text-sm">{{ alert.last_sent|naturaltime }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center space-x-2 ml-6">
+                            <a href="{% url 'monitor:edit_alert' alert.id %}" 
+                               class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm font-medium transition-all duration-200">
+                                Edit
+                            </a>
+                            <a href="{% url 'monitor:delete_alert' alert.id %}" 
+                               class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm font-medium transition-all duration-200">
+                                Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Alert Count Footer -->
+            <div class="bg-white/5 border-t border-white/10 px-6 py-3">
+                <p class="text-white/50 text-sm">
+                    {{ url_alerts|length }} alert{{ url_alerts|length|pluralize }} configured
+                </p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="glass-effect rounded-2xl border border-white/10 p-12 text-center">
+        <div class="max-w-md mx-auto space-y-4">
+            <div class="text-6xl mb-4">🔔</div>
+            <h3 class="text-2xl font-bold text-white">No Alerts Configured</h3>
+            <p class="text-white/50">Set up alerts to get notified when your URLs go down</p>
+            <a href="{% url 'monitor:add_alert' %}" class="inline-block mt-4 btn-primary">
+                Create Your First Alert
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

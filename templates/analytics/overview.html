@@ -1,233 +1,386 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Analytics Overview{% endblock %}
+{% block title %}Analytics{% if monitored_url %} - {{ monitored_url.name }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold gradient-text">Analytics Dashboard</h1>
-            <p class="text-white/50 mt-1">Comprehensive insights into user behavior and engagement</p>
+<div class="space-y-8 animate-slideUp">
+    <!-- Header with URL Selector -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div class="flex-1">
+            <h1 class="text-4xl font-bold tracking-tight text-white">
+                Analytics Dashboard
+            </h1>
+            <p class="text-white/50 mt-2 text-sm">
+                {% if monitored_url %}
+                    Tracking {{ monitored_url.name }}
+                {% else %}
+                    Comprehensive insights across all your monitored URLs
+                {% endif %}
+            </p>
         </div>
         
-        <!-- Time Range Selector -->
-        <div class="flex items-center space-x-2">
-            <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/20" onchange="window.location.href='?days='+this.value">
-                <option value="1" {% if days == 1 %}selected{% endif %}>Last 24 hours</option>
-                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
-            </select>
+        <!-- Controls -->
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- URL Selector -->
+            {% if all_monitored_urls %}
+            <div class="relative min-w-[200px]">
+                <select id="urlSelector" 
+                        class="w-full glass-effect border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/20 transition-all appearance-none cursor-pointer hover:border-white/20"
+                        onchange="if(this.value) window.location.href=this.value">
+                    <option value="{% url 'monitor:analytics_overview' %}">All URLs</option>
+                    {% for url in all_monitored_urls %}
+                    <option value="{% url 'monitor:analytics_overview_url' url.id %}" 
+                            {% if monitored_url and monitored_url.id == url.id %}selected{% endif %}>
+                        {{ url.name|truncatechars:30 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Time Range Selector -->
+            <div class="relative min-w-[160px]">
+                <select id="timeRange" 
+                        class="w-full glass-effect border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all appearance-none cursor-pointer hover:border-white/20" 
+                        onchange="updateTimeRange(this.value)">
+                    <option value="1" {% if days == 1 %}selected{% endif %}>📅 Last 24 hours</option>
+                    <option value="7" {% if days == 7 %}selected{% endif %}>📅 Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>📅 Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>📅 Last 90 days</option>
+                </select>
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
-        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Overview</a>
-        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
-        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Geolocation</a>
-        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
-        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
-        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Sessions</a>
+    <!-- Quick Navigation Tabs -->
+    <div class="glass-effect rounded-2xl p-2 border border-white/10">
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'monitor:analytics_overview' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all transform hover:scale-[1.02]">
+                Overview
+            </a>
+            <a href="{% url 'monitor:analytics_heatmap' %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+                Heatmaps
+            </a>
+            <a href="{% url 'monitor:analytics_geolocation' %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+                Geolocation
+            </a>
+            <a href="{% url 'monitor:analytics_performance' %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+                Performance
+            </a>
+            <a href="{% url 'monitor:analytics_scroll' %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+                Scroll Depth
+            </a>
+            <a href="{% url 'monitor:analytics_sessions' %}?days={{ days }}" 
+               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
+                Sessions
+            </a>
+        </div>
     </div>
 
-    <!-- Key Metrics -->
+    <!-- Key Metrics Cards - Minimalist Design -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="glass-effect rounded-xl p-6 hover-lift">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-lg bg-blue-500/10">
-                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Total Pageviews -->
+        <div class="group glass-effect rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="text-white/50 text-sm font-medium mb-1">Total Pageviews</h3>
-            <p class="text-3xl font-bold text-white">{{ total_pageviews|default:"0" }}</p>
+            <h3 class="text-white/50 text-sm font-medium mb-2">Total Pageviews</h3>
+            <div class="flex items-baseline space-x-2">
+                <p class="text-4xl font-bold text-white">{{ total_pageviews|default:"0"|intcomma }}</p>
+                <span class="text-sm text-white/50 font-medium">views</span>
+            </div>
         </div>
 
-        <div class="glass-effect rounded-xl p-6 hover-lift">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-lg bg-green-500/10">
-                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Unique Visitors -->
+        <div class="group glass-effect rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="text-white/50 text-sm font-medium mb-1">Unique Visitors</h3>
-            <p class="text-3xl font-bold text-white">{{ unique_visitors|default:"0" }}</p>
+            <h3 class="text-white/50 text-sm font-medium mb-2">Unique Visitors</h3>
+            <div class="flex items-baseline space-x-2">
+                <p class="text-4xl font-bold text-white">{{ unique_visitors|default:"0"|intcomma }}</p>
+                <span class="text-sm text-white/50 font-medium">users</span>
+            </div>
         </div>
 
-        <div class="glass-effect rounded-xl p-6 hover-lift">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-lg bg-purple-500/10">
-                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Avg. Time on Page -->
+        <div class="group glass-effect rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="text-white/50 text-sm font-medium mb-1">Avg. Time on Page</h3>
-            <p class="text-3xl font-bold text-white">{{ avg_time_on_page|floatformat:0 }}s</p>
+            <h3 class="text-white/50 text-sm font-medium mb-2">Avg. Time on Page</h3>
+            <div class="flex items-baseline space-x-2">
+                <p class="text-4xl font-bold text-white">{{ avg_time_on_page|floatformat:0 }}</p>
+                <span class="text-sm text-white/50 font-medium">seconds</span>
+            </div>
         </div>
 
-        <div class="glass-effect rounded-xl p-6 hover-lift">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-lg bg-red-500/10">
-                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Bounce Rate -->
+        <div class="group glass-effect rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
+            <div class="flex items-center justify-between mb-6">
+                <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-all">
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                     </svg>
                 </div>
             </div>
-            <h3 class="text-white/50 text-sm font-medium mb-1">Bounce Rate</h3>
-            <p class="text-3xl font-bold text-white">{{ bounce_rate|floatformat:1 }}%</p>
+            <h3 class="text-white/50 text-sm font-medium mb-2">Bounce Rate</h3>
+            <div class="flex items-baseline space-x-2">
+                <p class="text-4xl font-bold text-white">{{ bounce_rate|floatformat:1 }}</p>
+                <span class="text-sm text-white/50 font-medium">%</span>
+            </div>
         </div>
     </div>
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Pageviews Over Time -->
-        <div class="glass-effect rounded-xl p-6">
-            <h2 class="text-xl font-bold mb-4">Pageviews Over Time</h2>
-            <canvas id="pageviewsChart" class="w-full" style="max-height: 300px;"></canvas>
+        <div class="glass-effect rounded-2xl p-8 border border-white/10">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white">Pageviews Over Time</h2>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="pageviewsChart"></canvas>
+            </div>
         </div>
 
         <!-- Device Breakdown -->
-        <div class="glass-effect rounded-xl p-6">
-            <h2 class="text-xl font-bold mb-4">Device Breakdown</h2>
-            <canvas id="deviceChart" class="w-full" style="max-height: 300px;"></canvas>
+        <div class="glass-effect rounded-2xl p-8 border border-white/10">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white">Device Breakdown</h2>
+            </div>
+            <div style="height: 300px;">
+                <canvas id="deviceChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Top Pages & Countries -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Top Pages -->
-        <div class="glass-effect rounded-xl p-6">
-            <h2 class="text-xl font-bold mb-4">Top Pages</h2>
-            <div class="space-y-3">
-                {% for page in top_pages %}
-                <div class="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-white truncate">{{ page.page_url }}</p>
-                        <p class="text-xs text-white/50 mt-1">
-                            {{ page.views }} views · {{ page.unique_views }} unique · {{ page.avg_time|floatformat:0 }}s avg · {{ page.avg_scroll|floatformat:0 }}% scroll
-                        </p>
+    <!-- Top Pages -->
+    {% if top_pages %}
+    <div class="glass-effect rounded-2xl p-8 border border-white/10">
+        <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-white">Top Pages</h2>
+        </div>
+        <div class="space-y-3">
+            {% for page in top_pages %}
+            <div class="flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all border border-white/5">
+                <div class="flex-1 min-w-0">
+                    <p class="text-white font-medium truncate">{{ page.page_url }}</p>
+                    <div class="flex items-center space-x-4 mt-2 text-sm text-white/50">
+                        <span>👁️ {{ page.views }} views</span>
+                        <span>👤 {{ page.unique_views }} unique</span>
+                        <span>⏱️ {{ page.avg_time|floatformat:0 }}s avg</span>
                     </div>
                 </div>
-                {% empty %}
-                <p class="text-white/50 text-center py-8">No pageview data available</p>
-                {% endfor %}
             </div>
-        </div>
-
-        <!-- Top Countries -->
-        <div class="glass-effect rounded-xl p-6">
-            <h2 class="text-xl font-bold mb-4">Top Countries</h2>
-            <div class="space-y-3">
-                {% for country in top_countries %}
-                <div class="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                    <span class="text-sm font-medium text-white">{{ country.country }}</span>
-                    <span class="text-sm text-white/70">{{ country.count }} visits</span>
-                </div>
-                {% empty %}
-                <p class="text-white/50 text-center py-8">No location data available</p>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Browser Breakdown -->
-    <div class="glass-effect rounded-xl p-6">
-        <h2 class="text-xl font-bold mb-4">Browser Breakdown</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {% for browser in browser_breakdown %}
-            <div class="p-4 rounded-lg bg-white/5 text-center">
-                <p class="text-2xl font-bold text-white">{{ browser.count }}</p>
-                <p class="text-sm text-white/50 mt-1">{{ browser.browser }}</p>
-            </div>
-            {% empty %}
-            <p class="text-white/50 col-span-full text-center py-8">No browser data available</p>
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <script>
-// Pageviews Chart
-const pageviewsData = {{ pageviews_by_day|safe }};
-const pageviewsCtx = document.getElementById('pageviewsChart').getContext('2d');
-new Chart(pageviewsCtx, {
-    type: 'line',
-    data: {
-        labels: pageviewsData.map(d => new Date(d.date).toLocaleDateString()),
-        datasets: [
-            {
-                label: 'Total Views',
-                data: pageviewsData.map(d => d.count),
-                borderColor: 'rgb(59, 130, 246)',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                fill: true,
-                tension: 0.4
-            },
-            {
-                label: 'Unique Views',
-                data: pageviewsData.map(d => d.unique),
-                borderColor: 'rgb(34, 197, 94)',
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                fill: true,
-                tension: 0.4
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                labels: { color: 'rgba(255, 255, 255, 0.7)' }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { color: 'rgba(255, 255, 255, 0.5)' },
-                grid: { color: 'rgba(255, 255, 255, 0.05)' }
-            },
-            x: {
-                ticks: { color: 'rgba(255, 255, 255, 0.5)' },
-                grid: { color: 'rgba(255, 255, 255, 0.05)' }
-            }
-        }
-    }
-});
+function updateTimeRange(days) {
+    const urlSelector = document.getElementById('urlSelector');
+    const currentUrl = urlSelector ? urlSelector.value : window.location.pathname;
+    window.location.href = currentUrl + '?days=' + days;
+}
 
-// Device Chart
-const deviceData = {{ device_breakdown|safe }};
-const deviceCtx = document.getElementById('deviceChart').getContext('2d');
-new Chart(deviceCtx, {
-    type: 'doughnut',
-    data: {
-        labels: deviceData.map(d => d.device_type),
-        datasets: [{
-            data: deviceData.map(d => d.count),
-            backgroundColor: [
-                'rgba(59, 130, 246, 0.8)',
-                'rgba(34, 197, 94, 0.8)',
-                'rgba(168, 85, 247, 0.8)'
-            ],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: { color: 'rgba(255, 255, 255, 0.7)', padding: 20 }
+document.addEventListener('DOMContentLoaded', function() {
+    // Pageviews Chart
+    const pageviewsData = {{ pageviews_by_day|safe }};
+    if (pageviewsData && pageviewsData.length > 0) {
+        const ctx = document.getElementById('pageviewsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: pageviewsData.map(d => d.date),
+                datasets: [{
+                    label: 'Total Views',
+                    data: pageviewsData.map(d => d.count),
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }, {
+                    label: 'Unique Visitors',
+                    data: pageviewsData.map(d => d.unique),
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: 'rgba(168, 85, 247, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#fff',
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 10, 10, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: 'rgba(255, 255, 255, 0.8)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)',
+                            drawBorder: false
+                        }
+                    }
+                }
             }
-        }
+        });
+    }
+
+    // Device Chart
+    const deviceData = {{ device_breakdown|safe }};
+    if (deviceData && deviceData.length > 0) {
+        const ctx2 = document.getElementById('deviceChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: deviceData.map(d => d.device || 'Unknown'),
+                datasets: [{
+                    data: deviceData.map(d => d.count),
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(168, 85, 247, 0.8)',
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(234, 179, 8, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(168, 85, 247, 1)',
+                        'rgba(34, 197, 94, 1)',
+                        'rgba(234, 179, 8, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#fff',
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(10, 10, 10, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: 'rgba(255, 255, 255, 0.8)',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
     }
 });
 </script>
