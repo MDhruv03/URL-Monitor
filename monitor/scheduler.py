@@ -10,6 +10,11 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+# Configuration
+SCHEDULER_CHECK_INTERVAL = 30  # Seconds between scheduler iterations
+CLEANUP_INTERVAL = 10  # Run cleanup every N scheduler iterations (10 * 30s = 5 minutes)
+KEEP_RECORDS_PER_URL = 100  # Keep last N status records per URL (prevents database bloat)
+
 class URLMonitorScheduler:
     """Background scheduler that runs URL checks without Celery"""
     
@@ -41,9 +46,16 @@ class URLMonitorScheduler:
         from monitor.tasks import check_url_status
         
         logger.info("Scheduler loop started")
+        cleanup_counter = 0  # Counter for periodic cleanup
         
         while self.running:
             try:
+                # Run cleanup every 10 iterations (every 5 minutes)
+                cleanup_counter += 1
+                if cleanup_counter >= CLEANUP_INTERVAL:
+                    self._cleanup_old_data()
+                    cleanup_counter = 0
+                
                 # Get all active URLs that need checking
                 now = timezone.now()
                 urls_to_check = MonitoredURL.objects.filter(is_active=True)
@@ -70,7 +82,7 @@ class URLMonitorScheduler:
                         logger.error(f"Error scheduling check for {url.url}: {e}")
                 
                 # Sleep for 30 seconds before next iteration
-                time.sleep(30)
+                time.sleep(SCHEDULER_CHECK_INTERVAL)
                 
             except Exception as e:
                 logger.error(f"Scheduler loop error: {e}")
@@ -139,6 +151,47 @@ class URLMonitorScheduler:
             logger.error(f"Fatal error in _check_url for {url.url}: {e}", exc_info=True)
         finally:
             # Always close connection after thread work
+            connection.close()
+
+
+    def _cleanup_old_data(self):
+        """Clean up old status records to prevent database bloat"""
+        try:
+            from monitor.models import MonitoredURL, URLStatus
+            from django.db import connection
+            from django.db.models import Count, Q
+            
+            # Close old connections
+            connection.close()
+            
+            logger.info("Starting database cleanup...")
+            
+            # Configuration: Keep last N records per URL
+            KEEP_RECORDS = KEEP_RECORDS_PER_URL  # Use global config
+            
+            total_deleted = 0
+            
+            # For each URL, keep only the most recent records
+            urls = MonitoredURL.objects.all()
+            for url in urls:
+                # Get IDs of records to keep (most recent ones)
+                keep_ids = URLStatus.objects.filter(url=url).order_by('-timestamp')[:KEEP_RECORDS].values_list('id', flat=True)
+                
+                # Delete older records
+                deleted_count = URLStatus.objects.filter(url=url).exclude(id__in=list(keep_ids)).delete()[0]
+                
+                if deleted_count > 0:
+                    total_deleted += deleted_count
+                    logger.info(f"Deleted {deleted_count} old status records for {url.name}")
+            
+            if total_deleted > 0:
+                logger.info(f"Cleanup completed: Removed {total_deleted} old status records")
+            else:
+                logger.debug("Cleanup completed: No old records to remove")
+                
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+        finally:
             connection.close()
 
 
