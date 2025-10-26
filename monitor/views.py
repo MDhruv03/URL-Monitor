@@ -77,24 +77,23 @@ def health_check(request):
         
         logger.info("Health check: ALL PASSED")
         
-        # Check Celery worker availability (non-blocking)
-        celery_status = "unknown"
+        # Check background scheduler status (replaces Celery check)
+        scheduler_status = "unknown"
         try:
-            from celery import current_app
-            inspect = current_app.control.inspect(timeout=1.0)
-            active_workers = inspect.active()
-            if active_workers:
-                celery_status = f"running ({len(active_workers)} workers)"
+            from monitor.scheduler import get_scheduler
+            scheduler = get_scheduler()
+            if scheduler and scheduler.running:
+                scheduler_status = "running"
             else:
-                celery_status = "no workers available"
-        except Exception as celery_error:
-            celery_status = f"not available ({str(celery_error)})"
-            logger.warning(f"Celery check failed: {celery_error}")
+                scheduler_status = "not running"
+        except Exception as scheduler_error:
+            scheduler_status = f"error: {str(scheduler_error)}"
+            logger.warning(f"Scheduler check failed: {scheduler_error}")
         
         return JsonResponse({
             'status': 'healthy',
             'database': 'connected',
-            'celery_workers': celery_status,
+            'scheduler': scheduler_status,
             'tables': {
                 'users': user_count,
                 'monitored_urls': url_count,
@@ -410,20 +409,25 @@ def delete_url(request, url_id):
 @login_required
 def check_now(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
-    from .tasks import check_url_status
     
     try:
-        # Try to use Celery worker (asynchronous)
-        result = check_url_status.delay(str(url.id))
-        messages.info(request, 'URL check initiated. Results will appear shortly.')
+        # Use background scheduler's check method
+        from monitor.scheduler import get_scheduler
+        scheduler = get_scheduler()
+        
+        # Run check in background thread
+        import threading
+        check_thread = threading.Thread(
+            target=scheduler._check_url,
+            args=(url,),
+            daemon=True
+        )
+        check_thread.start()
+        
+        messages.success(request, 'URL check initiated. Refresh page in a few seconds to see results.')
     except Exception as e:
-        # Fallback to synchronous check if Celery is not available
-        logger.warning(f"Celery not available, running synchronous check: {e}")
-        try:
-            check_url_status(str(url.id))
-            messages.success(request, 'URL checked successfully!')
-        except Exception as check_error:
-            messages.error(request, f'Error checking URL: {check_error}')
+        logger.error(f"Error initiating URL check: {e}")
+        messages.error(request, f'Error checking URL: {e}')
     
     return redirect('monitor:url_detail', url_id=url.id)
 

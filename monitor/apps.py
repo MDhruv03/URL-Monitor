@@ -1,14 +1,23 @@
 from django.apps import AppConfig
 import sys
+import os
 
 class MonitorConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'monitor'
 
     def ready(self):
-        # Avoid running on `makemigrations`, `migrate`, etc.
-        if 'runserver' in sys.argv or 'celery' in sys.argv:
-            from .tasks import schedule_checks
-            # optional: run only once or under DEBUG
-            # from django.conf import settings
-            # if settings.DEBUG:
+        # Only start scheduler in production (gunicorn) or development (runserver)
+        # Skip during migrations, shell, etc.
+        if 'runserver' in sys.argv or 'gunicorn' in os.environ.get('SERVER_SOFTWARE', ''):
+            try:
+                from .scheduler import start_scheduler
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info("Starting background URL monitor scheduler...")
+                start_scheduler()
+                logger.info("Background scheduler started successfully")
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Failed to start scheduler: {e}")

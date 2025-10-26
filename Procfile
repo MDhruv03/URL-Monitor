@@ -1,2 +1,1 @@
-web: gunicorn url_monitor.wsgi:application --bind 0.0.0.0:$PORT
-worker: python start_celery.py
+web: gunicorn url_monitor.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
