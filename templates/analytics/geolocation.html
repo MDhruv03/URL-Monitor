@@ -33,12 +33,11 @@
     </div>
 
     <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
-        <a href="{% url 'monitor:analytics_overview' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
-        <a href="{% url 'monitor:analytics_heatmap' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
-        <a href="{% url 'monitor:analytics_geolocation' %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Geolocation</a>
-        <a href="{% url 'monitor:analytics_performance' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
-        <a href="{% url 'monitor:analytics_scroll' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
-        <a href="{% url 'monitor:analytics_sessions' %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Sessions</a>
+        <a href="{% url 'monitor:analytics_overview' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Overview</a>
+        <a href="{% url 'monitor:analytics_heatmap' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Heatmaps</a>
+        <a href="{% url 'monitor:analytics_geolocation' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}" class="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Geolocation</a>
+        <a href="{% url 'monitor:analytics_performance' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Performance</a>
+        <a href="{% url 'monitor:analytics_scroll' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}" class="px-4 py-2 rounded-lg text-white/70 hover:bg-white/5 text-sm font-medium transition-all">Scroll Depth</a>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
