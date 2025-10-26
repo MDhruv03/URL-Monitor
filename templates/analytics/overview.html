@@ -71,25 +71,21 @@
                class="px-5 py-2.5 rounded-xl bg-white text-black text-sm font-semibold transition-all">
                 Overview
             </a>
-            <a href="{% url 'monitor:analytics_heatmap' %}?days={{ days }}" 
+            <a href="{% url 'monitor:analytics_heatmap' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}?days={{ days }}" 
                class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
                 Heatmaps
             </a>
-            <a href="{% url 'monitor:analytics_geolocation' %}?days={{ days }}" 
+            <a href="{% url 'monitor:analytics_geolocation' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}?days={{ days }}" 
                class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
                 Geolocation
             </a>
-            <a href="{% url 'monitor:analytics_performance' %}?days={{ days }}" 
+            <a href="{% url 'monitor:analytics_performance' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}?days={{ days }}" 
                class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
                 Performance
             </a>
-            <a href="{% url 'monitor:analytics_scroll' %}?days={{ days }}" 
+            <a href="{% url 'monitor:analytics_scroll' %}{% if monitored_url %}{{ monitored_url.id }}/{% endif %}?days={{ days }}" 
                class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
                 Scroll Depth
-            </a>
-            <a href="{% url 'monitor:analytics_sessions' %}?days={{ days }}" 
-               class="px-5 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/5 text-sm font-medium transition-all">
-                Sessions
             </a>
         </div>
     </div>
