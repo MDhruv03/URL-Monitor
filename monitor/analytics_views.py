@@ -488,12 +488,16 @@ def scroll_depth_view(request, url_id=None):
     # Calculate max count for distribution bar scaling
     max_count = max(scroll_ranges.values()) if scroll_ranges else 1
     
+    # Get deep scrollers count (90-100%) for template
+    deep_scrollers = scroll_ranges.get('90-100%', 0)
+    
     context = {
         'monitored_url': monitored_url,
         'all_monitored_urls': all_monitored_urls,
         'days': days,
         'scroll_ranges': scroll_ranges,
         'max_count': max_count,
+        'deep_scrollers': deep_scrollers,
         'scroll_by_page': list(scroll_by_page),
         'scroll_over_time': list(scroll_over_time),
     }
