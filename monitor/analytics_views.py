@@ -63,8 +63,11 @@ def analytics_overview(request, url_id=None):
         
         logger.info(f"Loading analytics overview for {days} days starting from {start_date}")
         
-        # Base query - filter by URL if specified
-        pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+        # Base query - filter by URL if specified, otherwise filter by user
+        pageview_query = PageView.objects.filter(
+            timestamp__gte=start_date,
+            url__user=request.user  # Always filter by user ownership
+        )
         if monitored_url:
             pageview_query = pageview_query.filter(url=monitored_url)
         
@@ -267,8 +270,11 @@ def geolocation_view(request, url_id=None):
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Base query - filter by URL if specified
-    pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+    # Base query - filter by user and URL if specified
+    pageview_query = PageView.objects.filter(
+        timestamp__gte=start_date,
+        url__user=request.user  # Always filter by user ownership
+    )
     if monitored_url:
         pageview_query = pageview_query.filter(url=monitored_url)
     
@@ -328,8 +334,11 @@ def performance_view(request, url_id=None):
     days = int(request.GET.get('days', 7))
     start_date = timezone.now() - timedelta(days=days)
     
-    # Base query - filter by URL if specified
-    perf_query = PerformanceMetric.objects.filter(timestamp__gte=start_date)
+    # Base query - filter by user and URL if specified
+    perf_query = PerformanceMetric.objects.filter(
+        timestamp__gte=start_date,
+        url__user=request.user  # Always filter by user ownership
+    )
     if monitored_url:
         perf_query = perf_query.filter(url=monitored_url)
     
@@ -366,7 +375,10 @@ def performance_view(request, url_id=None):
     ).order_by('-samples')[:10]
     
     # Get performance by device (from PageView for device info)
-    pageview_query = PageView.objects.filter(timestamp__gte=start_date)
+    pageview_query = PageView.objects.filter(
+        timestamp__gte=start_date,
+        url__user=request.user  # Always filter by user ownership
+    )
     if monitored_url:
         pageview_query = pageview_query.filter(url=monitored_url)
     

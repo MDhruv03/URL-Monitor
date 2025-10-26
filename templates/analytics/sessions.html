@@ -7,14 +7,28 @@
 <div class="space-y-8">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold gradient-text">Session Recordings</h1>
-            <p class="text-white/50 mt-1">User sessions and interaction timelines</p>
+            <h1 class="text-3xl font-bold text-white">Session Recordings</h1>
+            <p class="text-white/50 mt-1">{% if monitored_url %}Tracking {{ monitored_url.name }}{% else %}User sessions and interaction timelines{% endif %}</p>
         </div>
         
-        <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="window.location.href='?days='+this.value">
-            <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-            <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-        </select>
+        <div class="flex items-center space-x-2">
+            <!-- URL Selector -->
+            {% if all_monitored_urls %}
+            <select id="urlSelector" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="if(this.value) window.location.href=this.value">
+                <option value="{% url 'monitor:analytics_sessions' %}?days={{ days }}">All URLs</option>
+                {% for url in all_monitored_urls %}
+                <option value="{% url 'monitor:analytics_sessions_url' url.id %}?days={{ days }}" {% if monitored_url and monitored_url.id == url.id %}selected{% endif %}>
+                    {{ url.name|truncatechars:30 }}
+                </option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            
+            <select id="timeRange" class="glass-effect rounded-lg px-4 py-2 text-sm font-medium text-white" onchange="updateTimeRange(this.value)">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+            </select>
+        </div>
     </div>
 
     <div class="glass-effect rounded-xl p-2 flex flex-wrap gap-2">
@@ -85,7 +99,7 @@
                             {{ session.start_time|date:"M d, Y H:i" }} · 
                             {{ session.pages_visited }} pages · 
                             {{ session.total_clicks }} clicks
-                            {% if session.had_rage_clicks %}<span class="text-red-400 ml-2">⚠ Rage clicks</span>{% endif %}
+                            {% if session.had_rage_clicks %}<span class="text-red-400 ml-2">Rage clicks</span>{% endif %}
                         </p>
                     </div>
                     <svg class="w-5 h-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,4 +114,12 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function updateTimeRange(days) {
+    const urlSelector = document.getElementById('urlSelector');
+    const currentUrl = urlSelector ? urlSelector.value.split('?')[0] : window.location.pathname;
+    window.location.href = currentUrl + '?days=' + days;
+}
+</script>
 {% endblock %}

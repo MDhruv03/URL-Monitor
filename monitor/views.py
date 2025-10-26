@@ -76,9 +76,25 @@ def health_check(request):
             }, status=500)
         
         logger.info("Health check: ALL PASSED")
+        
+        # Check Celery worker availability (non-blocking)
+        celery_status = "unknown"
+        try:
+            from celery import current_app
+            inspect = current_app.control.inspect(timeout=1.0)
+            active_workers = inspect.active()
+            if active_workers:
+                celery_status = f"running ({len(active_workers)} workers)"
+            else:
+                celery_status = "no workers available"
+        except Exception as celery_error:
+            celery_status = f"not available ({str(celery_error)})"
+            logger.warning(f"Celery check failed: {celery_error}")
+        
         return JsonResponse({
             'status': 'healthy',
             'database': 'connected',
+            'celery_workers': celery_status,
             'tables': {
                 'users': user_count,
                 'monitored_urls': url_count,
@@ -395,8 +411,20 @@ def delete_url(request, url_id):
 def check_now(request, url_id):
     url = get_object_or_404(MonitoredURL, id=url_id, user=request.user)
     from .tasks import check_url_status
-    result = check_url_status.delay(str(url.id))
-    messages.info(request, 'URL check initiated. Results will appear shortly.')
+    
+    try:
+        # Try to use Celery worker (asynchronous)
+        result = check_url_status.delay(str(url.id))
+        messages.info(request, 'URL check initiated. Results will appear shortly.')
+    except Exception as e:
+        # Fallback to synchronous check if Celery is not available
+        logger.warning(f"Celery not available, running synchronous check: {e}")
+        try:
+            check_url_status(str(url.id))
+            messages.success(request, 'URL checked successfully!')
+        except Exception as check_error:
+            messages.error(request, f'Error checking URL: {check_error}')
+    
     return redirect('monitor:url_detail', url_id=url.id)
 
 @login_required
