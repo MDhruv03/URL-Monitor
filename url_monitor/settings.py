@@ -50,7 +50,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
+]
+
+# Only use WhiteNoise in production
+if not DEBUG:
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+
+MIDDLEWARE += [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -143,8 +149,9 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Use simple static file storage in development, manifest storage in production
+# Configure static file storage based on DEBUG mode
 if DEBUG:
+    # Development: Use simple static file storage (no manifest, no WhiteNoise)
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -153,10 +160,8 @@ if DEBUG:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
-    # Disable WhiteNoise compression and manifest in development
-    WHITENOISE_AUTOREFRESH = True
-    WHITENOISE_USE_FINDERS = True
 else:
+    # Production: Use WhiteNoise with compression and manifest
     STORAGES = {
         "default": {
             "BACKEND": "django.core.files.storage.FileSystemStorage",
