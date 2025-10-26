@@ -367,6 +367,24 @@ def track_external_url(request, url_id):
                         page_load_time=event.get('page_load_time')
                     )
                 
+                elif event_type == 'scroll':
+                    # Update the most recent pageview with scroll depth
+                    try:
+                        pageview = PageView.objects.filter(
+                            url=monitored_url,
+                            session_id=event.get('session_id'),
+                            visitor_id=event.get('visitor_id'),
+                            page_url=event.get('page_url', '')
+                        ).latest('timestamp')
+                        
+                        # Only update if new scroll depth is greater
+                        new_depth = event.get('scroll_depth', 0)
+                        if new_depth > pageview.scroll_depth:
+                            pageview.scroll_depth = new_depth
+                            pageview.save()
+                    except PageView.DoesNotExist:
+                        pass
+                
                 elif event_type == 'page_leave':
                     # Update the most recent pageview with final metrics
                     try:
