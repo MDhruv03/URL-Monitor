@@ -213,31 +213,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     datasets: [{
                         label: 'Uptime %',
                         data: chartData.uptime,
-                        borderColor: '#22c55e',
+                        borderColor: 'rgba(34, 197, 94, 0.9)',
                         backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 2.5,
                         tension: 0.4,
                         fill: true,
                         yAxisID: 'y',
-                        pointRadius: 4,
+                        pointRadius: 3,
                         pointHoverRadius: 6,
-                        pointBackgroundColor: '#22c55e',
-                        pointBorderColor: '#000',
+                        pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+                        pointBorderColor: '#fff',
                         pointBorderWidth: 2,
+                        pointHoverBorderWidth: 2.5
                     }, {
                         label: 'Response Time (ms)',
                         data: chartData.responseTimes,
-                        borderColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.7)',
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        borderWidth: 2,
+                        borderWidth: 2.5,
                         tension: 0.4,
                         fill: true,
                         yAxisID: 'y1',
-                        pointRadius: 4,
+                        pointRadius: 3,
                         pointHoverRadius: 6,
-                        pointBackgroundColor: '#ffffff',
+                        pointBackgroundColor: 'rgba(255, 255, 255, 0.9)',
                         pointBorderColor: '#000',
                         pointBorderWidth: 2,
+                        pointHoverBorderWidth: 2.5
                     }]
                 },
                 options: {
@@ -251,10 +253,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         legend: {
                             position: 'top',
                             labels: {
-                                color: 'rgba(255, 255, 255, 0.7)',
+                                color: 'rgba(255, 255, 255, 0.8)',
                                 font: {
                                     size: 12,
-                                    weight: '500',
+                                    weight: '600',
+                                    family: "'Inter', system-ui"
                                 },
                                 padding: 20,
                                 usePointStyle: true,
@@ -262,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            backgroundColor: 'rgba(10, 10, 10, 0.95)',
                             titleColor: '#fff',
                             bodyColor: 'rgba(255, 255, 255, 0.8)',
                             borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -270,6 +273,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             padding: 12,
                             displayColors: true,
                             cornerRadius: 8,
+                            titleFont: {
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                size: 12
+                            }
                         }
                     },
                     scales: {
@@ -281,12 +291,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             max: 100,
                             ticks: {
                                 color: 'rgba(255, 255, 255, 0.5)',
-                                font: { size: 11 },
+                                font: { size: 11, family: "'Inter', system-ui" },
                                 callback: function(value) { return value + '%'; }
                             },
                             grid: {
                                 color: 'rgba(255, 255, 255, 0.05)',
                                 drawBorder: false,
+                            },
+                            border: {
+                                display: false
                             }
                         },
                         y1: {
@@ -295,11 +308,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             position: 'right',
                             ticks: {
                                 color: 'rgba(255, 255, 255, 0.5)',
-                                font: { size: 11 },
+                                font: { size: 11, family: "'Inter', system-ui" },
                                 callback: function(value) { return value + 'ms'; }
                             },
                             grid: {
                                 drawOnChartArea: false,
+                            },
+                            border: {
+                                display: false
                             }
                         },
                         x: {

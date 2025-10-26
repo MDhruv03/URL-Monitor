@@ -297,11 +297,20 @@ def url_list(request):
         last_status = url.statuses.first()
         url.last_response_time = last_status.response_time if last_status else None
         
+        # Get status for display
+        if last_status:
+            url.display_status = "UP" if last_status.is_up else "DOWN"
+        else:
+            url.display_status = "UNKNOWN"
+        
         enriched_urls.append(url)
     
     table = URLTable(enriched_urls)
     RequestConfig(request, paginate={'per_page': 10}).configure(table)
-    return render(request, 'url_list.html', {'table': table})
+    return render(request, 'url_list.html', {
+        'table': table,
+        'urls': enriched_urls  # Pass the actual URL list
+    })
 
 @login_required
 def url_detail(request, url_id):
