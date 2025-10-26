@@ -294,7 +294,7 @@ def dashboard(request):
 
 @login_required
 def url_list(request):
-    urls = MonitoredURL.objects.filter(user=request.user)
+    urls = MonitoredURL.objects.filter(user=request.user, is_active=True)
     
     # Enrich each URL with extra stats
     enriched_urls = []
