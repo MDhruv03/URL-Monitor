@@ -1,0 +1,112 @@
+# Python# Python
+
+__pycache____pycache__
+
+*.py[cod]*.py[cod]
+
+*$py.class*$py.class
+
+*.so*.so
+
+.Python.Python
+
+
+
+# Virtual Environment# Virtual Environment
+
+venv/venv/
+
+env/env/
+
+ENV/ENV/
+
+
+
+# Django# Django
+
+*.log*.log
+
+db.sqlite3db.sqlite3
+
+db.sqlite3-journaldb.sqlite3-journal
+
+/media/media
+
+/staticfiles/staticfiles
+
+
+
+# Environment# Environment
+
+.env.env
+
+.env.local.env.local
+
+
+
+# Git# Git
+
+.git.git
+
+.gitignore.gitignore
+
+.gitattributes.gitattributes
+
+
+
+# IDE# IDE
+
+.vscode.vscode
+
+.idea.idea
+
+*.swp*.swp
+
+*.swo*.swo
+
+
+
+# Node# Node
+
+node_modules/node_modules/
+
+npm-debug.lognpm-debug.log
+
+
+
+# Testing# Testing
+
+.coverage.coverage
+
+.pytest_cache/.pytest_cache/
+
+htmlcov/htmlcov/
+
+
+
+# OS# OS
+
+.DS_Store.DS_Store
+
+Thumbs.dbThumbs.db
+
+
+
+# Documentation# Documentation
+
+README.mdREADME.md
+
+CONTRIBUTING.mdCONTRIBUTING.md
+
+*.md*.md
+
+
+
+# Docker# Docker
+
+DockerfileDockerfile
+
+docker-compose.ymldocker-compose.yml
+
+.dockerignore.dockerignore
+
