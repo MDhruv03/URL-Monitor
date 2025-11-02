@@ -146,10 +146,6 @@ def user_login(request):
                 login(request, user)
                 messages.success(request, f'Welcome back, {username}!')
                 return redirect('monitor:dashboard')
-            else:
-                messages.error(request, 'Invalid username or password.')
-        else:
-            messages.error(request, 'Invalid login. Please check your credentials.')
     else:
         form = UserLoginForm()
     
