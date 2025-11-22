@@ -1,211 +1,219 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-black">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up · URL Monitor</title>
+    <title>Create Account · URL Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
-        .input:focus { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.25); outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
-        .btn-primary { background: white; color: black; transition: all 0.3s; }
-        .btn-primary:hover { background: rgba(255,255,255,0.9); transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
-        .feature-item { transition: all 0.3s ease; }
-        .feature-item:hover { transform: translateX(8px); background: rgba(255,255,255,0.06); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }}
-        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
-        .logo-icon { transition: all 0.5s ease; }
-        .logo-icon:hover { transform: rotate(360deg) scale(1.1); }
+        [x-cloak] { display: none !important; }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        .bg-grid {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen">
-    
-    <div class="min-h-screen flex flex-col lg:flex-row">
+<body class="text-white bg-black">
+
+    <div class="flex min-h-screen w-full overflow-x-hidden">
         
-        <!-- Left Side - Register Form -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 min-h-screen">
-            <div class="w-full max-w-md animate-fadeIn my-auto">
+        <!-- Left Side: Form (Desktop) - Flipped for Register -->
+        <div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-black p-8 lg:p-12 relative order-2 lg:order-1 border-r border-zinc-900 min-h-screen overflow-y-auto">
+            <!-- Mobile Grid Background -->
+            <div class="absolute inset-0 bg-grid opacity-30 lg:hidden pointer-events-none"></div>
+
+            <div class="w-full max-w-sm space-y-8 relative z-10 animate-slide-up my-auto">
                 
-                <!-- Mobile Header -->
-                <div class="lg:hidden text-center mb-10">
-                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl glass flex items-center justify-center logo-icon">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <!-- Mobile Brand Header -->
+                <div class="lg:hidden flex flex-col items-center space-y-4 mb-8">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl shadow-white/10">
+                        <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <h1 class="text-3xl font-bold mb-2">URL Monitor</h1>
-                    <p class="text-white/50 text-sm">Create your account</p>
+                    <h2 class="text-2xl font-bold tracking-tight">URL Monitor</h2>
                 </div>
-                
-                <!-- Register Card -->
-                <div class="glass rounded-3xl p-8 lg:p-10">
-                    
-                    <div class="mb-8">
-                        <h2 class="text-2xl lg:text-3xl font-bold mb-2">Create Account</h2>
-                        <p class="text-white/50 text-sm">Get started with URL monitoring today</p>
-                    </div>
-                    
-                    {% if form.errors %}
-                        <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-5 text-sm">
-                            {% for field, errors in form.errors.items %}
-                                {% for error in errors %}
-                                    <div class="flex items-start mb-1 last:mb-0">
-                                        <svg class="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
-                                        </svg>
-                                        <span>{{ error }}</span>
-                                    </div>
-                                {% endfor %}
+
+                <!-- Form Header -->
+                <div class="text-center lg:text-left space-y-2">
+                    <h2 class="text-3xl font-semibold tracking-tight text-white">Create Account</h2>
+                    <p class="text-sm text-zinc-500">Start monitoring your infrastructure in seconds.</p>
+                </div>
+
+                <!-- Errors -->
+                {% if form.errors %}
+                    <div class="p-4 rounded-lg bg-red-950/30 border border-red-900/50 text-red-400 text-sm space-y-2">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <div class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>{{ error }}</span>
+                                </div>
                             {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <form method="post" class="space-y-4">
-                        {% csrf_token %}
-                        
-                        <div>
-                            <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white/70 mb-2">
-                                Username
-                            </label>
-                            <input type="text" 
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   id="{{ form.username.id_for_label }}" 
-                                   name="{{ form.username.html_name }}"
-                                   placeholder="Choose a username"
-                                   required
-                                   autofocus>
-                        </div>
-                        
-                        <div>
-                            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-white/70 mb-2">
-                                Email Address
-                            </label>
-                            <input type="email" 
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   id="{{ form.email.id_for_label }}" 
-                                   name="{{ form.email.html_name }}"
-                                   placeholder="your@email.com"
-                                   required>
-                        </div>
-                        
-                        <div>
-                            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white/70 mb-2">
-                                Password
-                            </label>
-                            <input type="password" 
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   id="{{ form.password1.id_for_label }}" 
-                                   name="{{ form.password1.html_name }}"
-                                   placeholder="Create a strong password"
-                                   required>
-                        </div>
-                        
-                        <div>
-                            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white/70 mb-2">
-                                Confirm Password
-                            </label>
-                            <input type="password" 
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   id="{{ form.password2.id_for_label }}" 
-                                   name="{{ form.password2.html_name }}"
-                                   placeholder="Re-enter your password"
-                                   required>
-                        </div>
-                        
-                        <button type="submit" class="btn-primary w-full py-4 rounded-xl font-semibold text-base shadow-lg mt-6">
-                            Create Account →
-                        </button>
-                    </form>
-                    
-                    <div class="mt-8 pt-8 border-t border-white/10">
-                        <p class="text-center text-white/50 text-sm">
-                            Already have an account? 
-                            <a href="{% url 'monitor:login' %}" class="text-white font-semibold hover:underline transition-all">
-                                Sign in
-                            </a>
-                        </p>
+                        {% endfor %}
                     </div>
+                {% endif %}
+
+                <!-- Form -->
+                <form method="post" class="space-y-4" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="space-y-1.5">
+                        <label for="{{ form.username.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider ml-1">Username</label>
+                        <input type="text" 
+                               name="{{ form.username.html_name }}" 
+                               id="{{ form.username.id_for_label }}"
+                               value="{{ form.username.value|default_if_none:'' }}"
+                               class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0"
+                               placeholder="Choose a unique handle"
+                               required
+                               autofocus>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="{{ form.email.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider ml-1">Email Address</label>
+                        <input type="email" 
+                               name="{{ form.email.html_name }}" 
+                               id="{{ form.email.id_for_label }}"
+                               value="{{ form.email.value|default_if_none:'' }}"
+                               class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0"
+                               placeholder="you@company.com"
+                               required>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="{{ form.password1.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider ml-1">Password</label>
+                            <input type="password" 
+                                   name="{{ form.password1.html_name }}" 
+                                   id="{{ form.password1.id_for_label }}"
+                                   class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0"
+                                   placeholder="••••••••"
+                                   required>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="{{ form.password2.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider ml-1">Confirm</label>
+                            <input type="password" 
+                                   name="{{ form.password2.html_name }}" 
+                                   id="{{ form.password2.id_for_label }}"
+                                   class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0"
+                                   placeholder="••••••••"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-zinc-500 ml-1">
+                        By clicking create account, you agree to our <a href="#" class="text-zinc-400 hover:text-white underline">Terms</a> and <a href="#" class="text-zinc-400 hover:text-white underline">Privacy Policy</a>.
+                    </p>
+
+                    <button type="submit" class="group w-full bg-white text-black font-semibold rounded-lg py-3.5 hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center gap-2 mt-6 shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]">
+                        <span>Create Account</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </button>
+                </form>
+
+                <!-- Footer Links -->
+                <div class="text-center pt-6 border-t border-zinc-900">
+                    <p class="text-zinc-500 text-sm">
+                        Already have an account? 
+                        <a href="{% url 'monitor:login' %}" class="text-white font-medium hover:underline underline-offset-4 decoration-zinc-600 hover:decoration-white transition-all">Sign in</a>
+                    </p>
                 </div>
-                
-                <p class="text-center text-white/20 text-xs mt-8">© {% now "Y" %} URL Monitor. All rights reserved.</p>
-                
             </div>
         </div>
-        
-        <!-- Right Side - Branding & Info -->
-        <div class="hidden lg:flex lg:w-1/2 items-center justify-center p-12 border-l border-white/10 relative min-h-screen">
+
+        <!-- Right Side: Visuals (Desktop) -->
+        <div class="hidden lg:flex lg:w-1/2 relative bg-zinc-950 flex-col justify-center p-16 overflow-y-auto order-1 lg:order-2">
+            <!-- Background Effects -->
+            <div class="absolute inset-0 bg-grid opacity-50"></div>
+            <div class="absolute top-0 right-0 w-full h-64 bg-gradient-to-b from-black to-transparent opacity-80"></div>
+            <div class="absolute bottom-0 right-0 w-full h-64 bg-gradient-to-t from-black to-transparent opacity-80"></div>
             
-            <!-- Decorative Elements -->
-            <div class="absolute top-20 right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-20 left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="relative z-10 max-w-lg space-y-12 my-auto">
-                
-                <!-- Logo Section -->
-                <div class="text-center">
-                    <div class="w-28 h-28 mx-auto mb-8 rounded-3xl glass flex items-center justify-center logo-icon">
-                        <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-5xl font-bold mb-4 tracking-tight">URL Monitor</h1>
-                    <p class="text-xl text-white/60 leading-relaxed">Start monitoring your websites in minutes</p>
+            <!-- Top Right Logo -->
+            <div class="absolute top-12 right-12 z-20 flex items-center gap-3 animate-fade-in">
+                <div class="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-white/20">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
-                
-                <!-- Benefits -->
-                <div class="space-y-4">
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Free to Start</h3>
-                                <p class="text-sm text-white/50">No credit card required</p>
-                            </div>
+                <span class="text-xl font-bold tracking-tight">URL Monitor</span>
+            </div>
+
+            <!-- Center Visual Elements -->
+            <div class="relative z-10 w-full max-w-md mx-auto space-y-6">
+                <!-- Feature 1 -->
+                <div class="group p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 cursor-default backdrop-blur-sm animate-slide-up" style="animation-delay: 0.1s;">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-white text-black flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                         </div>
-                    </div>
-                    
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Secure & Private</h3>
-                                <p class="text-sm text-white/50">Your data is encrypted and protected</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Lightning Fast</h3>
-                                <p class="text-sm text-white/50">Set up monitoring in under 60 seconds</p>
-                            </div>
+                        <div>
+                            <h3 class="font-semibold text-white text-lg">Instant Notifications</h3>
+                            <p class="text-zinc-400 text-sm mt-1">Get alerts via Email, Telegram, or Slack the moment your services experience issues.</p>
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- Feature 2 -->
+                <div class="group p-6 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-300 cursor-default backdrop-blur-sm animate-slide-up" style="animation-delay: 0.2s;">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-800 text-white flex items-center justify-center flex-shrink-0 border border-white/10">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white text-lg">Performance Analytics</h3>
+                            <p class="text-zinc-400 text-sm mt-1">Track response times, uptime percentages, and historical data with beautiful visualizations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Info -->
+            <div class="absolute bottom-12 right-12 text-right animate-fade-in" style="animation-delay: 0.3s;">
+                <p class="text-zinc-500 text-sm font-medium">Join thousands of developers monitoring their infrastructure</p>
             </div>
         </div>
-        
+
     </div>
-    
 </body>
 </html>

@@ -1,186 +1,192 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-black">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In · URL Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
-        .input { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
-        .input:focus { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.25); outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.05); }
-        .btn-primary { background: white; color: black; transition: all 0.3s; }
-        .btn-primary:hover { background: rgba(255,255,255,0.9); transform: translateY(-1px); box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
-        .feature-item { transition: all 0.3s ease; }
-        .feature-item:hover { transform: translateX(8px); background: rgba(255,255,255,0.06); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }}
-        .animate-fadeIn { animation: fadeIn 0.6s ease-out; }
-        .logo-icon { transition: all 0.5s ease; }
-        .logo-icon:hover { transform: rotate(360deg) scale(1.1); }
+        [x-cloak] { display: none !important; }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        /* Subtle grid pattern */
+        .bg-grid {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen">
-    
-    <div class="min-h-screen flex flex-col lg:flex-row">
+<body class="text-white bg-black">
+
+    <div class="flex min-h-screen w-full overflow-x-hidden">
         
-        <!-- Left Side - Login Form -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 min-h-screen">
-            <div class="w-full max-w-md animate-fadeIn my-auto">
+        <!-- Left Side: Brand & Aesthetic (Desktop) -->
+        <div class="hidden lg:flex lg:w-1/2 relative bg-zinc-950 flex-col justify-between p-16 border-r border-white/5 overflow-y-auto">
+            <!-- Background Effects -->
+            <div class="absolute inset-0 bg-grid opacity-50"></div>
+            <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-black to-transparent opacity-80"></div>
+            <div class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black to-transparent opacity-80"></div>
+            
+            <!-- Logo Area -->
+            <div class="relative z-10 flex items-center gap-3 animate-fade-in">
+                <div class="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-white/20">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight">URL Monitor</span>
+            </div>
+
+            <!-- Hero Content -->
+            <div class="relative z-10 max-w-lg animate-slide-up" style="animation-delay: 0.1s;">
+                <h1 class="text-5xl font-bold tracking-tighter leading-tight mb-6">
+                    Monitor with<br>
+                    <span class="text-zinc-500">Confidence.</span>
+                </h1>
+                <p class="text-zinc-400 text-lg font-light leading-relaxed border-l-2 border-zinc-800 pl-6">
+                    Track your website uptime and performance with real-time alerts, detailed analytics, and a clean dashboard built for reliability.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div class="relative z-10 flex justify-between items-end text-xs text-zinc-600 font-medium uppercase tracking-widest animate-fade-in" style="animation-delay: 0.2s;">
+                <span>System Operational</span>
+                <span>© {% now "Y" %}</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="w-full lg:w-1/2 flex flex-col justify-center items-center bg-black p-8 lg:p-12 relative min-h-screen overflow-y-auto">
+            <!-- Mobile Grid Background -->
+            <div class="absolute inset-0 bg-grid opacity-30 lg:hidden pointer-events-none"></div>
+
+            <div class="w-full max-w-sm space-y-10 relative z-10 animate-slide-up my-auto">
                 
-                <!-- Mobile Header -->
-                <div class="lg:hidden text-center mb-10">
-                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl glass flex items-center justify-center logo-icon">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <!-- Mobile Brand Header -->
+                <div class="lg:hidden flex flex-col items-center space-y-4 mb-8">
+                    <div class="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl shadow-white/10">
+                        <svg class="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
-                    <h1 class="text-3xl font-bold mb-2">URL Monitor</h1>
-                    <p class="text-white/50 text-sm">Welcome back</p>
+                    <h2 class="text-2xl font-bold tracking-tight">URL Monitor</h2>
                 </div>
-                
-                <!-- Login Card -->
-                <div class="glass rounded-3xl p-8 lg:p-10">
-                    
-                    <div class="mb-8">
-                        <h2 class="text-2xl lg:text-3xl font-bold mb-2">Sign In</h2>
-                        <p class="text-white/50 text-sm">Enter your credentials to continue</p>
-                    </div>
-                    
-                    {% if messages %}
+
+                <!-- Form Header -->
+                <div class="text-center lg:text-left space-y-2">
+                    <h2 class="text-3xl font-semibold tracking-tight text-white">Welcome back</h2>
+                    <p class="text-sm text-zinc-500">Enter your credentials to access your workspace.</p>
+                </div>
+
+                <!-- Messages / Errors -->
+                {% if messages %}
+                    <div class="space-y-2">
                         {% for message in messages %}
-                            <div class="{% if message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-400{% else %}bg-white/10 border-white/20{% endif %} border px-4 py-3 rounded-xl mb-5 text-sm flex items-start">
-                                <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
-                                </svg>
-                                <span>{{ message }}</span>
+                            <div class="p-3 text-sm rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center gap-3">
+                                <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                {{ message }}
                             </div>
                         {% endfor %}
-                    {% endif %}
-                    
-                    {% if form.errors %}
-                        <div class="bg-red-500/10 border border-red-500/30 px-4 py-3 rounded-xl mb-5 text-sm text-red-400 flex items-start">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"/>
-                            </svg>
-                            <span>Invalid credentials. Please try again.</span>
-                        </div>
-                    {% endif %}
-                    
-                    <form method="post" class="space-y-5">
-                        {% csrf_token %}
-                        
+                    </div>
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="p-3 text-sm rounded-lg bg-red-950/30 border border-red-900/50 text-red-400 flex items-start gap-3">
+                        <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <div>
-                            <label class="block text-sm font-medium text-white/70 mb-2">Username</label>
-                            <input type="text" 
-                                   name="{{ form.username.html_name }}"
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   placeholder="Enter your username"
-                                   required autofocus>
+                            <span class="font-medium">Authentication failed.</span>
+                            <p class="text-xs mt-1 opacity-80">Please check your username and password.</p>
                         </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-white/70 mb-2">Password</label>
-                            <input type="password" 
-                                   name="{{ form.password.html_name }}"
-                                   class="input w-full px-4 py-3.5 rounded-xl text-white placeholder:text-white/30" 
-                                   placeholder="Enter your password"
+                    </div>
+                {% endif %}
+
+                <!-- Form -->
+                <form method="post" class="space-y-5" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="space-y-1.5">
+                        <label for="{{ form.username.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider ml-1">Username</label>
+                        <input type="text" 
+                               name="{{ form.username.html_name }}" 
+                               id="{{ form.username.id_for_label }}"
+                               value="{{ form.username.value|default_if_none:'' }}"
+                               class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0"
+                               placeholder="name@company.com"
+                               required
+                               autofocus>
+                    </div>
+
+                    <div class="space-y-1.5" x-data="{ show: false }">
+                        <div class="flex justify-between items-center ml-1">
+                            <label for="{{ form.password.id_for_label }}" class="block text-xs font-medium text-zinc-400 uppercase tracking-wider">Password</label>
+                            <a href="#" class="text-xs text-zinc-500 hover:text-white transition-colors">Forgot password?</a>
+                        </div>
+                        <div class="relative">
+                            <input :type="show ? 'text' : 'password'" 
+                                   name="{{ form.password.html_name }}" 
+                                   id="{{ form.password.id_for_label }}"
+                                   class="glass-input w-full rounded-lg px-4 py-3 text-white placeholder-zinc-600 outline-none focus:ring-0 pr-10"
+                                   placeholder="••••••••"
                                    required>
+                            <button type="button" @click="show = !show" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-300 transition-colors focus:outline-none">
+                                <svg x-show="!show" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <svg x-show="show" x-cloak class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                            </button>
                         </div>
-                        
-                        <button type="submit" class="btn-primary w-full py-4 rounded-xl font-semibold text-base shadow-lg">
-                            Sign In →
-                        </button>
-                    </form>
-                    
-                    <div class="mt-8 pt-8 border-t border-white/10">
-                        <p class="text-center text-white/50 text-sm">
-                            Don't have an account? 
-                            <a href="{% url 'monitor:register' %}" class="text-white font-semibold hover:underline transition-all">
-                                Sign up
-                            </a>
-                        </p>
                     </div>
-                    
+
+                    <button type="submit" class="group w-full bg-white text-black font-semibold rounded-lg py-3.5 hover:bg-zinc-200 transition-all duration-200 flex items-center justify-center gap-2 mt-8 shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)]">
+                        <span>Sign In</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </form>
+
+                <!-- Footer Links -->
+                <div class="text-center pt-6 border-t border-zinc-900">
+                    <p class="text-zinc-500 text-sm">
+                        Don't have an account? 
+                        <a href="{% url 'monitor:register' %}" class="text-white font-medium hover:underline underline-offset-4 decoration-zinc-600 hover:decoration-white transition-all">Create an account</a>
+                    </p>
                 </div>
-                
-                <p class="text-center text-white/20 text-xs mt-8">© {% now "Y" %} URL Monitor. All rights reserved.</p>
-                
             </div>
         </div>
-        
-        <!-- Right Side - Branding & Features -->
-        <div class="hidden lg:flex lg:w-1/2 items-center justify-center p-12 border-l border-white/10 relative min-h-screen">
-            
-            <!-- Decorative Elements -->
-            <div class="absolute top-20 right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute bottom-20 left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-            
-            <div class="relative z-10 max-w-lg space-y-12 my-auto">
-                
-                <!-- Logo Section -->
-                <div class="text-center">
-                    <div class="w-28 h-28 mx-auto mb-8 rounded-3xl glass flex items-center justify-center logo-icon">
-                        <svg class="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-5xl font-bold mb-4 tracking-tight">URL Monitor</h1>
-                    <p class="text-xl text-white/60 leading-relaxed">Keep your websites running smoothly with real-time monitoring</p>
-                </div>
-                
-                <!-- Feature List -->
-                <div class="space-y-4">
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Real-time Monitoring</h3>
-                                <p class="text-sm text-white/50">Track uptime and performance 24/7</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Instant Alerts</h3>
-                                <p class="text-sm text-white/50">Get notified when issues occur</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass feature-item rounded-2xl p-5">
-                        <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-white mb-1">Detailed Analytics</h3>
-                                <p class="text-sm text-white/50">Comprehensive performance insights</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
-        </div>
-        
     </div>
-    
 </body>
 </html>
